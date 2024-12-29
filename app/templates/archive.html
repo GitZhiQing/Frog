@@ -1,0 +1,14 @@
+{% extends 'base.html' %} {% block subtitle %}归档{% endblock %} {% block styles
+%}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/archive.css') }}" />
+{% endblock %} {% block content %}
+<h2>文章</h2>
+<div id="articles"></div>
+{% endblock %} {% block scripts %}
+<script>
+  const dirTreeJson = "{{ dir_tree_json }}";
+</script>
+<script src="{{ url_for('static', filename='js/archive.js') }}"></script>
+{% endblock %}

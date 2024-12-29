@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>{% block subtitle %}{% endblock %} | {{ blog_name }}</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/main.css') }}"
+      type="text/css" />
+    {% block styles %}{% endblock %}
+  </head>
+
+  <body>
+    {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+    {% endfor %}
+
+    <div class="container">
+      <header>
+        <div class="header-top">
+          <img
+            src="{{ url_for('static', filename='favicon.svg') }}"
+            alt="logo" />
+          <div class="blog-info">
+            <h1>{{ blog_name }}</h1>
+            <p>{{ blog_desc }}</p>
+          </div>
+        </div>
+        <nav>
+          <a
+            href="{{ url_for('main.index') }}"
+            class="{% if request.endpoint == 'main.index' %}current-page{% endif %}"
+            >首页</a
+          >
+          <a
+            href="{{ url_for('main.about') }}"
+            class="{% if request.endpoint == 'main.about' %}current-page{% endif %}"
+            >关于</a
+          >
+          <a
+            href="{{ url_for('main.archive') }}"
+            class="{% if request.endpoint == 'main.archive' %}current-page{% endif %}"
+            >归档</a
+          >
+        </nav>
+      </header>
+      {% block content %}{% endblock %}
+      <footer>
+        &copy; 2024-now
+        <a href="https://github.com/GitZhiQing/FlyingChicken" target="_blank"
+          >Frog</a
+        >
+      </footer>
+      <script src="{{ url_for('static', filename='main.js') }}"></script>
+      {% block scripts %}{% endblock %}
+    </div>
+  </body>
+</html>

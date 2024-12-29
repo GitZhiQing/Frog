@@ -1,0 +1,46 @@
+[project]
+name = "app"
+version = "0.1.0"
+description = "简洁易用的个人博客"
+authors = [{ name = "QING", email = "qlear@qq.com" }]
+requires-python = ">=3.12,<4.0"
+
+[dependency-groups]
+default = [
+    "flask<4.0.0,>=3.1.0",              # web framework
+    "Markdown<4.0.0,>=3.7.0",           # markdown parser
+    "python-frontmatter<2.0.0,>=1.1.0", # frontmatter parser
+    "GitPython<4.0.0,>=3.1.43",         # git wrapper
+    "sqlalchemy<3.0.0,>=2.0.36",        # ORM
+    "Flask-SQLAlchemy<4.0.0,>=3.1.1",   # ORM extension
+    "python-dotenv<2.0.0,>=1.0.1",      # env loader
+]
+dev = [
+    "ruff<1.0.0,>=0.8.0",       # linter & formatter
+    "pytest<8.4.0,>=8.3.4",     # test runner
+    "coverage<8.0.0,>=7.6.0",   # test coverage
+    "pre-commit<5.0.0,>=4.0.1", # git hooks
+]
+
+[tool.uv]
+default-groups = ["default", "dev"]
+link-mode = "copy"
+
+[[tool.uv.index]]
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+default = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+indent-width = 4
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+log_cli = true
+log_level = "NOTSET"
+log_format = "[%(asctime)s] %(levelname)s %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"

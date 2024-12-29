@@ -1,0 +1,26 @@
+# dev
+dev-docs/
+test/
+
+# editor settings
+.idea/
+.vscode/settings.json
+
+# system files
+.DS_Store
+
+# secrets
+.env
+
+# venv
+.venv/
+
+# data
+*.db
+logs/
+
+# python cache
+__pycache__/
+
+# cache
+.*cache/

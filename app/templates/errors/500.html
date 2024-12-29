@@ -1,0 +1,9 @@
+{% extends 'base.html' %} {% block subtitle %}500 - 服务器内部错误{% endblock %}
+{% block styles %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/error.css') }}" />
+{% endblock %} {% block content %}
+<h1>500 - 服务器内部错误</h1>
+<p>服务器遇到错误，无法完成请求，请联系博客作者或稍后再试。</p>
+{% endblock %}
