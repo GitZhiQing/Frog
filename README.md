@@ -9,4 +9,4 @@
 
 ## 致谢
 
-样式参考李辉大佬的[博客](https://greyli.com/)，向大佬致敬！
+样式参考 WordPress [Twenty Twelve](https://wordpress.org/themes/twentytwelve/) 主题。
