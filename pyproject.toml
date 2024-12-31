@@ -8,8 +8,7 @@ requires-python = ">=3.12,<4.0"
 [dependency-groups]
 default = [
     "flask<4.0.0,>=3.1.0",              # web framework
-    "Markdown<4.0.0,>=3.7.0",           # markdown parser
-    "mistune<4.0.0,>=3.1.0",            # markdown parser alternative
+    "mistune<4.0.0,>=3.1.0",            # markdown parser
     "python-frontmatter<2.0.0,>=1.1.0", # frontmatter parser
     "GitPython<4.0.0,>=3.1.43",         # git wrapper
     "sqlalchemy<3.0.0,>=2.0.36",        # ORM
