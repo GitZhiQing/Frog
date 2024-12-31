@@ -1,11 +1,81 @@
 """app/utils.py"""
 
 from pathlib import Path
-import markdown
 import frontmatter
-import re
-from app.md_extensions import TodoExtension
-from app.md_extensions import BlockquoteFilterExtension
+import mistune
+from mistune.plugins.formatting import (
+    strikethrough,
+    mark,
+    insert,
+    superscript,
+    subscript,
+)
+from mistune.plugins.footnotes import footnotes
+from mistune.plugins.table import table
+from mistune.plugins.url import url
+from mistune.plugins.task_lists import task_lists
+from mistune.plugins.def_list import def_list
+from mistune.plugins.abbr import abbr
+from mistune.plugins.math import math
+
+
+class FrogRenderer(mistune.HTMLRenderer):
+    """
+    重写 block_quote 方法，支持渲染 GitHub 风格的提示框
+    """
+
+    def block_quote(self, text):
+        types = {
+            "[!NOTE]": "note",
+            "[!TIP]": "tip",
+            "[!IMPORTANT]": "important",
+            "[!WARNING]": "warning",
+            "[!CAUTION]": "caution",
+        }
+
+        for key, css_class in types.items():
+            if text.startswith(f"<p>{key}"):
+                return f'<blockquote class="{css_class}"><p>{text[len(key)+9:-5].strip()}</p></blockquote>'
+
+        return f"<blockquote>{text}</blockquote>"
+
+    def slugify(self, text):
+        """
+        将标题转换为 slug
+        """
+        return text.lower().strip().replace(" ", "-").replace(".", "").replace(",", "")
+
+    def heading(self, text, level, raw=None):
+        """
+        重写 heading 方法，支持为标题添加 id 属性
+        """
+        slug = self.slugify(text)
+        return f'<h{level} id="{slug}">{text}</h{level}>\n'
+
+    def block_html(self, html):
+        return html + "\n"
+
+
+renderer = FrogRenderer()
+markdown = mistune.create_markdown(
+    escape=False,
+    hard_wrap=True,
+    renderer=renderer,
+    plugins=[
+        strikethrough,  # 删除线
+        footnotes,  # 脚注
+        table,  # 表格
+        url,  # 将原始 URL 转换为链接
+        task_lists,  # 任务列表
+        def_list,  # html definition lists: dl, dt, dd
+        abbr,  # 缩写 Ref: https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/abbr
+        mark,  # 标记高亮
+        insert,  # 插入 Ref: https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/ins
+        superscript,  # 上标
+        subscript,  # 下标
+        math,  # 数学公式
+    ],
+)
 
 
 def get_dir_tree(path: str) -> dict:
@@ -56,41 +126,12 @@ def parse_md(md_path: str) -> tuple:
         metadata = post.metadata
         word_count = get_md_word_count(md_content)
         metadata["word_count"] = word_count
-        html_content, toc = convert_md_to_html(md_content)
+        html_content = convert_md_to_html(md_content)
     print(metadata)
-    return html_content, metadata, toc
+    return html_content, metadata
 
 
 def convert_md_to_html(md_content: str) -> tuple:
-    def slugify(value, separator):
-        """自定义 slugify 函数，保留中文字符"""
-        value = str(value)
-        value = re.sub(r"[^\w\u4e00-\u9fff]+", separator, value)
-        value = re.sub(r"[-\s]+", separator, value)
-        return value.strip(separator).lower()
-
     """将 markdown 内容转换为 HTML"""
-    md = markdown.Markdown(
-        extensions=[
-            "markdown.extensions.extra",
-            "markdown.extensions.admonition",
-            "markdown.extensions.codehilite",
-            "markdown.extensions.toc",
-            "markdown.extensions.wikilinks",
-            "markdown.extensions.sane_lists",
-            TodoExtension(),  # 自定义 TODO 列表扩展
-            BlockquoteFilterExtension(),  # 自定义 blockquote 过滤扩展
-        ],
-        extension_configs={
-            "markdown.extensions.toc": {
-                "title": "目录",
-                "title_class": "article-toc-title",
-                "toc_class": "article-toc",
-                "toc_depth": 3,
-                "slugify": slugify,
-            },
-        },
-    )
-    html_content = md.convert(md_content)
-    toc = md.toc
-    return html_content, toc
+    html_content = markdown(md_content)
+    return html_content

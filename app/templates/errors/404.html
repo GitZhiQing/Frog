@@ -1,11 +1,11 @@
-{% extends 'base.html' %} {% block subtitle %}404 - 资源未找到{% endblock %} {%
-block styles %}
-<link
-  rel="stylesheet"
-  href="{{ url_for('static', filename='css/error.css') }}" />
-{% endblock %} {%block content %}
-<div class="error">
-  <h1>404 - 资源未找到</h1>
-  <p>服务器无法找到请求的资源，请检查 URL 是否正确或稍后再试。</p>
-</div>
+{% extends 'base.html' %} {% block subtitle %}
+  404 - 本来无一物
+{% endblock %}
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/error.css') }}" />
+{% endblock %} {% block content %}
+  <div class="error">
+    <h1>404</h1>
+    <p>本来无一物，何处惹尘埃。</p>
+  </div>
 {% endblock %}

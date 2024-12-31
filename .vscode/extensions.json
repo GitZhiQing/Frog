@@ -1,0 +1,6 @@
+{
+    // 使用 Django 模板插件格式化 Jinja2 模板代码...
+    "recommendations": [
+        "junstyle.vscode-django-support"
+    ]
+}

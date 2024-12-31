@@ -16,10 +16,8 @@ def index():
 def article(title):
     """阅读文章页"""
     doc_path = utils.get_doc_path(current_app.config["MD_ROOT"], title)
-    html_content, meta, toc = utils.parse_md(doc_path)
-    return render_template(
-        "article.html", html_content=html_content, metadata=meta, toc=toc
-    )
+    html_content, meta = utils.parse_md(doc_path)
+    return render_template("article.html", html_content=html_content, metadata=meta)
 
 
 @bp.route("/archive")
