@@ -36,9 +36,9 @@
           </div>
         </div>
         <nav>
-          <a href="{{ url_for('main.index') }}" class="{% if request.endpoint == 'main.index' %}current-page{% endif %}">首页</a>
-          <a href="{{ url_for('main.about') }}" class="{% if request.endpoint == 'main.about' %}current-page{% endif %}">关于</a>
-          <a href="{{ url_for('main.archive') }}" class="{% if request.endpoint == 'main.archive' %}current-page{% endif %}">归档</a>
+          {% for item in nav_data %}
+            <a href="{{ item.route }}" class="{% if active_nav == item.name %}current-page{% endif %}">{{ item.name }}</a>
+          {% endfor %}
         </nav>
       </header>
       {% block content %}

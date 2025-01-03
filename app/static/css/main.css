@@ -7,6 +7,7 @@
   box-sizing: border-box;
   font-size: 100%;
   vertical-align: baseline;
+  scrollbar-width: thin;
 }
 
 body {
@@ -14,6 +15,8 @@ body {
   font-size: 14px;
   background: var(--color-background);
   color: var(--color-text);
+  /* 解决滚动条造成的页面抖动问题 */
+  padding-left: calc(100vw - 100%);
 }
 
 .header-top {

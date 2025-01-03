@@ -1,88 +1,15 @@
 """app/utils.py"""
 
+from flask import render_template
 from pathlib import Path
 import frontmatter
-import mistune
-from mistune.plugins.formatting import (
-    strikethrough,
-    mark,
-    insert,
-    superscript,
-    subscript,
-)
-from mistune.plugins.footnotes import footnotes
-from mistune.plugins.table import table
-from mistune.plugins.url import url
-from mistune.plugins.task_lists import task_lists
-from mistune.plugins.def_list import def_list
-from mistune.plugins.abbr import abbr
-from mistune.plugins.math import math
-
-
-class FrogRenderer(mistune.HTMLRenderer):
-    """
-    重写 block_quote 方法，支持渲染 GitHub 风格的提示框
-    """
-
-    def block_quote(self, text):
-        types = {
-            "[!NOTE]": "note",
-            "[!TIP]": "tip",
-            "[!IMPORTANT]": "important",
-            "[!WARNING]": "warning",
-            "[!CAUTION]": "caution",
-        }
-
-        for key, css_class in types.items():
-            if text.startswith(f"<p>{key}"):
-                return f'<blockquote class="{css_class}"><p>{text[len(key)+9:-5].strip()}</p></blockquote>'
-
-        return f"<blockquote>{text}</blockquote>"
-
-    def slugify(self, text):
-        """
-        将标题转换为 slug
-        """
-        return text.lower().strip().replace(" ", "-").replace(".", "").replace(",", "")
-
-    def heading(self, text, level, raw=None):
-        """
-        重写 heading 方法，支持为标题添加 id 属性
-        """
-        slug = self.slugify(text)
-        return f'<h{level} id="{slug}">{text}</h{level}>\n'
-
-    def block_html(self, html):
-        return html + "\n"
-
-
-renderer = FrogRenderer()
-markdown = mistune.create_markdown(
-    escape=False,
-    hard_wrap=True,
-    renderer=renderer,
-    plugins=[
-        strikethrough,  # 删除线
-        footnotes,  # 脚注
-        table,  # 表格
-        url,  # 将原始 URL 转换为链接
-        task_lists,  # 任务列表
-        def_list,  # html definition lists: dl, dt, dd
-        abbr,  # 缩写 Ref: https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/abbr
-        mark,  # 标记高亮
-        insert,  # 插入 Ref: https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/ins
-        superscript,  # 上标
-        subscript,  # 下标
-        math,  # 数学公式
-    ],
-)
 
 
 def get_dir_tree(path: str) -> dict:
     """递归获取指定目录的目录树"""
     root = Path(path)
     if not root.is_dir():
-        return
+        return {}
     tree = {}
     for item in root.iterdir():
         if item.is_dir():
@@ -112,10 +39,14 @@ def get_doc_path(root: Path, doc_name: str) -> str:
     return find_path(tree, root)
 
 
+def get_md_files(root: Path) -> list:
+    """获取根目录下一级的 Markdown 文件的路径"""
+    return [path for path in root.glob("*.md")]
+
+
 def get_md_word_count(md_content: str) -> int:
     """获取 markdown 内容的字数"""
-    word_count = len(md_content.split())
-    return word_count
+    return len(md_content.split())
 
 
 def parse_md(md_path: str) -> tuple:
@@ -124,14 +55,56 @@ def parse_md(md_path: str) -> tuple:
         post = frontmatter.load(f)
         md_content = post.content
         metadata = post.metadata
-        word_count = get_md_word_count(md_content)
-        metadata["word_count"] = word_count
+        metadata["word_count"] = get_md_word_count(md_content)
         html_content = convert_md_to_html(md_content)
-    print(metadata)
     return html_content, metadata
 
 
-def convert_md_to_html(md_content: str) -> tuple:
+def convert_md_to_html(md_content: str) -> str:
     """将 markdown 内容转换为 HTML"""
-    html_content = markdown(md_content)
-    return html_content
+    from app.markdown import markdown
+
+    return markdown(md_content)
+
+
+def get_nav_data(md_root: Path) -> list:
+    """获取导航栏数据"""
+    nav_data = []
+    # 动态导航页面
+    for md_file in get_md_files(md_root):
+        _, metadata = parse_md(md_file)
+        nav_data.append(
+            {
+                "name": metadata.get("nav_name", ""),
+                "route": f"/{metadata.get('nav_route', '')}",
+                "order": metadata.get("nav_order", 0),
+                "type": "dynamic",
+            }
+        )
+
+    # 默认导航页面
+    nav_data.extend(
+        [
+            {
+                "name": "归档",
+                "route": "/archive",
+                "order": 1000,
+                "type": "static",
+            },
+        ]
+    )
+
+    return sorted(nav_data, key=lambda x: x["order"])
+
+
+def nav_view_func(md_file: Path) -> str:
+    """导航栏视图函数"""
+    html_content, metadata = parse_md(md_file)
+    active_nav_route = metadata.get("nav_route", "")
+    return render_template(
+        "nav_page.html",
+        nav_data=get_nav_data(md_file.parent),
+        html_content=html_content,
+        active_nav_route=active_nav_route,
+        metadata=metadata,
+    )
