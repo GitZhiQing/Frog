@@ -7,6 +7,11 @@
   border-top: 1px solid var(--color-border);
 }
 
+.article-meta-header p {
+  margin: 0 0.5rem 0 0;
+  padding: 0;
+}
+
 ul.article-meta-tag {
   display: flex;
   flex-wrap: wrap;

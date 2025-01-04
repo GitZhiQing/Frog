@@ -1,5 +1,6 @@
 from flask import Flask, send_from_directory
 from app import utils, extensions
+from app.commands import register_commands
 
 from pathlib import Path
 
@@ -14,9 +15,7 @@ def create_app():
     register_extensions(app)
 
     # 注册命令
-    from app import commands
-
-    commands.register_commands(app)
+    register_commands(app)
 
     # 注册蓝图
     register_blueprints(app)

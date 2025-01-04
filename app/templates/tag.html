@@ -6,14 +6,17 @@
 
 {% block content %}
   <h2>标签: {{ tag }}</h2>
-  {% if articles %}
-    <ul>
-      {% for article in articles %}
-        <li>
-          {{ article.created_at.strftime('%Y/%m/%d') }} <a href="{{ url_for('main.article', title=article.title) }}">{{ article.title }}</a>
-        </li>
-      {% endfor %}
-    </ul>
+  {% if archive %}
+    {% for year, articles in archive.items() %}
+      <h5>{{ year }} ({{ articles|length }})</h5>
+      <ul>
+        {% for item in articles %}
+          <li>
+            {{ item.month_day }} <a href="{{ url_for('main.article', title=item.article.title) }}">{{ item.article.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endfor %}
   {% else %}
     <p>没有找到相关文章。</p>
   {% endif %}

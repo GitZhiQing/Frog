@@ -83,18 +83,13 @@ def get_md_files(root: Path) -> list:
     return [path for path in root.glob("*.md")]
 
 
-def get_md_word_count(md_content: str) -> int:
-    """获取 markdown 内容的字数"""
-    return len(md_content.split())
-
-
 def parse_md(md_path: str) -> tuple[str, dict]:
     """解析 markdown 文件"""
     with open(md_path, "r", encoding="utf-8") as f:
         post = frontmatter.load(f)
         md_content = post.content
         metadata = post.metadata
-        metadata["word_count"] = get_md_word_count(md_content)
+        metadata["word_count"] = len(md_content)
         html_content = convert_md_to_html(md_content)
     return html_content, metadata
 

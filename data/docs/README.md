@@ -4,9 +4,6 @@ date: 2025-01-01 03:33:51
 nav_name: 首页
 nav_route: index
 nav_order: 0
-tags:
-  - Tag1
-  - Tag2
 ---
 
 ## Frog - Gua Gua Gua

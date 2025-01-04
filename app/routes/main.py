@@ -8,11 +8,14 @@ bp = Blueprint("main", __name__)
 @bp.route("/archive")
 def archive():
     """归档页"""
-    articles = models.Article.query.order_by(models.Article.created_at.desc()).all()
+    articles = (
+        models.Article.query.join(models.Category)
+        .filter(models.Category.name != "root")
+        .order_by(models.Article.created_at.desc())
+        .all()
+    )
     archive = {}
     for article in articles:
-        if article.category.name == "root":
-            continue
         year = article.created_at.year
         month_day = article.created_at.strftime("%m/%d")
         if year not in archive:
@@ -24,11 +27,11 @@ def archive():
 @bp.route("/categories")
 def categories():
     """展示所有分类"""
-    categories = models.Category.query.all()
+    categories = models.Category.query.filter(models.Category.name != "root").all()
     categories_data = []
 
     for category in categories:
-        if category.name == "root" or not category.articles:
+        if not category.articles:
             continue
         doc_count = len(category.articles)
         categories_data.append({"name": category.name, "count": doc_count})
@@ -49,7 +52,17 @@ def category(category):
         .order_by(models.Article.created_at.desc())
         .all()
     )
-    return render_template("category.html", articles=articles, category=category)
+
+    # 按年份分组
+    archive = {}
+    for article in articles:
+        year = article.created_at.year
+        month_day = article.created_at.strftime("%m/%d")
+        if year not in archive:
+            archive[year] = []
+        archive[year].append({"month_day": month_day, "article": article})
+
+    return render_template("category.html", archive=archive, category=category)
 
 
 @bp.route("/tags")
@@ -59,8 +72,11 @@ def tags():
     tags_data = []
 
     for tag in tags:
-        article_count = len(tag.articles)
-        tags_data.append({"name": tag.name, "count": article_count})
+        article_count = len(
+            [article for article in tag.articles if article.category.name != "root"]
+        )
+        if article_count > 0:
+            tags_data.append({"name": tag.name, "count": article_count})
 
     return render_template("tags.html", tags=tags_data, active_nav_route="tags")
 
@@ -71,16 +87,28 @@ def tag(tag):
     tag_obj = models.Tag.query.filter_by(name=tag).first_or_404()
     articles = (
         models.Article.query.filter(models.Article.tags.contains(tag_obj))
+        .join(models.Category)
+        .filter(models.Category.name != "root")
         .order_by(models.Article.created_at.desc())
         .all()
     )
-    return render_template("tag.html", articles=articles, tag=tag)
+
+    # 按年份分组
+    archive = {}
+    for article in articles:
+        year = article.created_at.year
+        month_day = article.created_at.strftime("%m/%d")
+        if year not in archive:
+            archive[year] = []
+        archive[year].append({"month_day": month_day, "article": article})
+
+    return render_template("tag.html", archive=archive, tag=tag)
 
 
 @bp.route("/articles/<string:title>")
 def article(title):
     """阅读文章页"""
-    article = models.Article.query.filter_by(title=title).first()
+    article = models.Article.query.filter_by(title=title).first_or_404()
     doc_path = article.path
     html_content, meta = utils.parse_md(doc_path)
     meta["category"] = article.category.name

@@ -10,7 +10,7 @@
     <ul>
       {% for tag in tags %}
         <li>
-          <a href="{{ url_for('main.tag', tag=tag.name) }}">{{ tag.name }}</a> ({{ tag.count }})
+          <a href="{{ url_for('main.tag', tag=tag.name) }}">{{ tag.name }} ({{ tag.count }})</a>
         </li>
       {% endfor %}
     </ul>
