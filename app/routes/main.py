@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from app import utils
-from app import models
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+
+from app import models, utils
 from app.extensions import db
 
 bp = Blueprint("main", __name__)

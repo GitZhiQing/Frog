@@ -13,6 +13,9 @@
 
 {% block content %}
   <div class="article-content">{{ html_content|safe }}</div>
+  {% if enable_comment %}
+    {% include 'comment.html' %}
+  {% endif %}
 {% endblock %}
 
 {% block scripts %}

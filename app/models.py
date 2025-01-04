@@ -1,5 +1,4 @@
 from app.extensions import db
-import time
 
 
 class Article(db.Model):
@@ -9,9 +8,7 @@ class Article(db.Model):
     title = db.Column(db.String(255), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey("categories.id"), nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.now())
-    updated_at = db.Column(
-        db.Integer, default=int(time.time()), onupdate=int(time.time())
-    )
+    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
     tags = db.relationship("Tag", secondary="articles_tags", back_populates="articles")
 
 

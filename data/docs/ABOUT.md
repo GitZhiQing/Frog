@@ -4,9 +4,7 @@ date: 2025-01-01 03:33:51
 nav_name: 关于
 nav_route: about
 nav_order: 2
-tags:
-  - Tag1
-  - Tag2
+comment: true
 ---
 
 ## _你好~ Hello~_

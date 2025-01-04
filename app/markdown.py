@@ -1,18 +1,18 @@
 import mistune
-from mistune.plugins.formatting import (
-    strikethrough,
-    mark,
-    insert,
-    superscript,
-    subscript,
-)
-from mistune.plugins.footnotes import footnotes
-from mistune.plugins.table import table
-from mistune.plugins.url import url
-from mistune.plugins.task_lists import task_lists
-from mistune.plugins.def_list import def_list
 from mistune.plugins.abbr import abbr
+from mistune.plugins.def_list import def_list
+from mistune.plugins.footnotes import footnotes
+from mistune.plugins.formatting import (
+    insert,
+    mark,
+    strikethrough,
+    subscript,
+    superscript,
+)
 from mistune.plugins.math import math
+from mistune.plugins.table import table
+from mistune.plugins.task_lists import task_lists
+from mistune.plugins.url import url
 
 
 class FrogRenderer(mistune.HTMLRenderer):
@@ -31,7 +31,11 @@ class FrogRenderer(mistune.HTMLRenderer):
 
         for key, css_class in types.items():
             if text.startswith(f"<p>{key}"):
-                return f'<blockquote class="{css_class}"><p>{text[len(key)+9:-5].strip()}</p></blockquote>'
+                return (
+                    f'<blockquote class="{css_class}">'
+                    f"<p>{text[len(key)+9:-5].strip()}</p>"
+                    f"</blockquote>"
+                )
 
         return f"<blockquote>{text}</blockquote>"
 

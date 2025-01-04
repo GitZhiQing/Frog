@@ -1,8 +1,9 @@
 import click
 from flask import current_app
 from flask.cli import with_appcontext
-from app.models import db
+
 from app import utils
+from app.models import db
 
 
 @click.command("initdb")

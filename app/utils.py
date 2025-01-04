@@ -1,8 +1,8 @@
-"""app/utils.py"""
-
-from flask import render_template
 from pathlib import Path
+
 import frontmatter
+from flask import flash, redirect, render_template, request, url_for
+
 from app import models
 from app.extensions import db
 
@@ -80,12 +80,12 @@ def get_doc_path(root: Path, doc_name: str) -> str:
 
 def get_md_files(root: Path) -> list:
     """获取根目录下一级的 Markdown 文件的路径"""
-    return [path for path in root.glob("*.md")]
+    return list(root.glob("*.md"))
 
 
 def parse_md(md_path: str) -> tuple[str, dict]:
     """解析 markdown 文件"""
-    with open(md_path, "r", encoding="utf-8") as f:
+    with open(md_path, encoding="utf-8") as f:
         post = frontmatter.load(f)
         md_content = post.content
         metadata = post.metadata
@@ -147,10 +147,45 @@ def nav_view_func(md_file: Path) -> str:
     """导航栏视图函数"""
     html_content, metadata = parse_md(md_file)
     active_nav_route = metadata.get("nav_route", "")
+    enable_comment = metadata.get("comment", False)
+
+    new_comment_id = None
+    if request.method == "POST" and enable_comment:
+        content = request.form.get("content")
+        author = request.form.get("author")
+        website = request.form.get("website", "#")
+        email = request.form.get("email", "")
+        parent_id = request.form.get("parent_id")
+        if content and author:
+            new_comment = models.Comment(
+                article_id=str(md_file),
+                content=content,
+                author=author,
+                website=website,
+                email=email,
+                parent_id=parent_id,
+            )
+            db.session.add(new_comment)
+            db.session.commit()
+            new_comment_id = new_comment.id
+            flash("评论成功", "success")
+            return redirect(
+                url_for(request.endpoint, _anchor=f"comment-{new_comment_id}")
+            )
+
+    comments = []
+    if enable_comment:
+        comments = models.Comment.query.filter_by(
+            article_id=str(md_file), parent_id=""
+        ).all()
+
     return render_template(
         "nav_page.html",
         nav_data=get_nav_data(md_file.parent),
         html_content=html_content,
         active_nav_route=active_nav_route,
         metadata=metadata,
+        enable_comment=enable_comment,
+        comments=comments,
+        new_comment_id=new_comment_id,
     )

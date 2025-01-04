@@ -1,8 +1,9 @@
-from flask import Flask, send_from_directory
-from app import utils, extensions
-from app.commands import register_commands
-
 from pathlib import Path
+
+from flask import Flask, send_from_directory
+
+from app import extensions, utils
+from app.commands import register_commands
 
 
 def create_app():
@@ -67,14 +68,16 @@ def register_context_processors(app: Flask) -> None:
     def inject_global_data():
         md_root = Path(app.config["MD_ROOT"])
         nav_data = utils.get_nav_data(md_root)
-        return dict(
-            blog_name=app.config.get("BLOG_NAME", "Frog"),
-            blog_desc=app.config.get("BLOG_DESC", "Gua Gua Gua"),
-            blog_admin_name=app.config.get("BLOG_ADMIN_NAME", "Frog"),
-            blog_admin_email=app.config.get("BLOG_ADMIN_EMAIL", "admin@frog.com"),
-            blog_admin_signature=app.config.get("BLOG_ADMIN_SIGNATURE", "Gua Gua Gua"),
-            nav_data=nav_data,
-        )
+        return {
+            "blog_name": app.config.get("BLOG_NAME", "Frog"),
+            "blog_desc": app.config.get("BLOG_DESC", "Gua Gua Gua"),
+            "blog_admin_name": app.config.get("BLOG_ADMIN_NAME", "Frog"),
+            "blog_admin_email": app.config.get("BLOG_ADMIN_EMAIL", "admin@frog.com"),
+            "blog_admin_signature": app.config.get(
+                "BLOG_ADMIN_SIGNATURE", "Gua Gua Gua"
+            ),
+            "nav_data": nav_data,
+        }
 
 
 def register_static_routes(app: Flask) -> None:
@@ -96,18 +99,19 @@ def add_dynamic_routes(app: Flask, md_root: Path) -> None:
         _, metadata = utils.parse_md(md_file)
         nav_route = f"/{metadata.get('nav_route', '')}"
         endpoint = f"nav_{metadata.get('nav_route', '')}"
+        enable_comment = metadata.get("comment", False)
 
         if nav_route == "/index":
             app.add_url_rule(
                 "/",
                 view_func=lambda md_file=md_file: utils.nav_view_func(md_file),
                 endpoint="index",
-                methods=["GET"],
+                methods=["GET", "POST"] if enable_comment else ["GET"],
             )
 
         app.add_url_rule(
             nav_route,
             view_func=lambda md_file=md_file: utils.nav_view_func(md_file),
             endpoint=endpoint,
-            methods=["GET"],
+            methods=["GET", "POST"] if enable_comment else ["GET"],
         )

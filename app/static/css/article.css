@@ -174,3 +174,32 @@ ul.article-meta-tag {
 .article-content .highlight {
   background-color: yellow;
 }
+
+.article-page::after {
+  display: block;
+  margin: 2rem auto;
+  width: 100%;
+  text-align: center;
+  content: "--- end ---";
+  font-size: 1rem;
+  color: #888;
+  position: relative;
+}
+
+.article-page::after::before,
+.article-page::after::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 50px;
+  height: 1px;
+  background: #888;
+}
+
+.article-page::after::before {
+  left: calc(50% - 75px);
+}
+
+.article-page::after::after {
+  right: calc(50% - 75px);
+}
