@@ -37,7 +37,7 @@
         </div>
         <nav>
           {% for item in nav_data %}
-            <a href="{{ item.route }}" class="{% if active_nav == item.name %}current-page{% endif %}">{{ item.name }}</a>
+            <a href="/{{ item.route }}" class="{% if active_nav_route == item.route %}current-page{% endif %}">{{ item.name }}</a>
           {% endfor %}
         </nav>
       </header>

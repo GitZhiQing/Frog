@@ -3,11 +3,13 @@
 from flask import render_template
 from pathlib import Path
 import frontmatter
+from app import models
+from app.extensions import db
 
 
-def get_dir_tree(path: str) -> dict:
+def get_dir_tree(root: str) -> dict:
     """递归获取指定目录的目录树"""
-    root = Path(path)
+    root = Path(root)
     if not root.is_dir():
         return {}
     tree = {}
@@ -17,6 +19,43 @@ def get_dir_tree(path: str) -> dict:
         else:
             tree[item.name] = None
     return tree
+
+
+def init_articles(root: Path) -> None:
+    """递归获取指定目录的目录树，同时将所有 markdown 文档写入数据库"""
+    tree = get_dir_tree(root)
+    for name, subtree in tree.items():
+        if subtree is not None:
+            init_articles(root / name)
+        else:
+            if name.endswith(".md"):
+                md_path = root / name
+                _, metadata = parse_md(md_path)
+                category_name = root.name if root.name != "docs" else "root"
+                category = models.Category.query.filter_by(name=category_name).first()
+                if not category:
+                    category = models.Category(name=category_name)
+                    db.session.add(category)
+                    db.session.commit()
+                article = models.Article(
+                    path=str(md_path),
+                    title=metadata.get("title", ""),
+                    category_id=category.id,
+                    created_at=metadata.get("date", ""),
+                )
+                db.session.add(article)
+                db.session.commit()
+
+                # 处理标签
+                tags = metadata.get("tags", [])
+                for tag_name in tags:
+                    tag = models.Tag.query.filter_by(name=tag_name).first()
+                    if not tag:
+                        tag = models.Tag(name=tag_name)
+                        db.session.add(tag)
+                        db.session.commit()
+                    article.tags.append(tag)
+                db.session.commit()
 
 
 def get_doc_path(root: Path, doc_name: str) -> str:
@@ -49,7 +88,7 @@ def get_md_word_count(md_content: str) -> int:
     return len(md_content.split())
 
 
-def parse_md(md_path: str) -> tuple:
+def parse_md(md_path: str) -> tuple[str, dict]:
     """解析 markdown 文件"""
     with open(md_path, "r", encoding="utf-8") as f:
         post = frontmatter.load(f)
@@ -76,7 +115,7 @@ def get_nav_data(md_root: Path) -> list:
         nav_data.append(
             {
                 "name": metadata.get("nav_name", ""),
-                "route": f"/{metadata.get('nav_route', '')}",
+                "route": metadata.get("nav_route", ""),
                 "order": metadata.get("nav_order", 0),
                 "type": "dynamic",
             }
@@ -86,9 +125,21 @@ def get_nav_data(md_root: Path) -> list:
     nav_data.extend(
         [
             {
-                "name": "归档",
-                "route": "/archive",
+                "name": "分类",
+                "route": "categories",
                 "order": 1000,
+                "type": "static",
+            },
+            {
+                "name": "标签",
+                "route": "tags",
+                "order": 1001,
+                "type": "static",
+            },
+            {
+                "name": "归档",
+                "route": "archive",
+                "order": 1002,
                 "type": "static",
             },
         ]

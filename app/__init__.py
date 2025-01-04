@@ -1,5 +1,6 @@
 from flask import Flask, send_from_directory
-from app import utils
+from app import utils, extensions
+
 from pathlib import Path
 
 
@@ -8,6 +9,14 @@ def create_app():
 
     # 导入应用配置
     configure_app(app)
+
+    # 注册扩展
+    register_extensions(app)
+
+    # 注册命令
+    from app import commands
+
+    commands.register_commands(app)
 
     # 注册蓝图
     register_blueprints(app)
@@ -34,9 +43,14 @@ def configure_app(app: Flask) -> None:
     app.config.from_object(Config)
 
 
+def register_extensions(app: Flask) -> None:
+    """注册扩展"""
+    extensions.db.init_app(app)
+
+
 def register_blueprints(app: Flask) -> None:
     """注册蓝图"""
-    from app.routes.main import bp as main_bp
+    from app.routes import main_bp
 
     app.register_blueprint(main_bp, url_prefix="/")
 

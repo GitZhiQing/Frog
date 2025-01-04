@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block subtitle %}
+  标签
+{% endblock %}
+
+{% block content %}
+  <h2>标签</h2>
+  {% if tags %}
+    <ul>
+      {% for tag in tags %}
+        <li>
+          <a href="{{ url_for('main.tag', tag=tag.name) }}">{{ tag.name }}</a> ({{ tag.count }})
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>没有找到分类。</p>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  <script></script>
+{% endblock %}

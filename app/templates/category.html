@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block subtitle %}
+  分类 - {{ category }}
+{% endblock %}
+
+{% block content %}
+  <h2>分类: {{ category }} ({{ articles|length }})</h2>
+  {% if articles %}
+    <ul>
+      {% for article in articles %}
+        <li>
+          {{ article.created_at.strftime('%Y/%m/%d') }} <a href="{{ url_for('main.article', title=article.title) }}">{{ article.title }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>没有找到相关文章。</p>
+  {% endif %}
+{% endblock %}

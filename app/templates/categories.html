@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block subtitle %}
+  分类
+{% endblock %}
+
+{% block content %}
+  <h2>分类</h2>
+  {% if categories %}
+    <ul>
+      {% for category in categories %}
+        <li>
+          <a href="{{ url_for('main.category', category=category.name) }}">{{ category.name }} ({{ category.count }})</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>没有找到分类。</p>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  <script></script>
+{% endblock %}
