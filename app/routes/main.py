@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app import utils
 from app import models
+from app.extensions import db
 
 bp = Blueprint("main", __name__)
 
@@ -105,11 +106,47 @@ def tag(tag):
     return render_template("tag.html", archive=archive, tag=tag)
 
 
-@bp.route("/articles/<string:title>")
+@bp.route("/articles/<string:title>", methods=["GET", "POST"])
 def article(title):
     """阅读文章页"""
     article = models.Article.query.filter_by(title=title).first_or_404()
     doc_path = article.path
     html_content, meta = utils.parse_md(doc_path)
     meta["category"] = article.category.name
-    return render_template("article.html", html_content=html_content, metadata=meta)
+
+    new_comment_id = None
+    if request.method == "POST":
+        content = request.form.get("content")
+        author = request.form.get("author")
+        website = request.form.get("website", "#")
+        email = request.form.get("email", "")
+        parent_id = request.form.get("parent_id")
+        if content and author:
+            new_comment = models.Comment(
+                article_id=article.path,
+                content=content,
+                author=author,
+                website=website,
+                email=email,
+                parent_id=parent_id,
+            )
+            db.session.add(new_comment)
+            db.session.commit()
+            new_comment_id = new_comment.id
+            flash("评论成功", "success")
+            return redirect(
+                url_for(
+                    "main.article", title=title, _anchor=f"comment-{new_comment_id}"
+                )
+            )
+
+    comments = models.Comment.query.filter_by(
+        article_id=article.path, parent_id=""
+    ).all()
+    return render_template(
+        "article.html",
+        html_content=html_content,
+        metadata=meta,
+        comments=comments,
+        new_comment_id=new_comment_id,
+    )

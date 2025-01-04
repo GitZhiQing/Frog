@@ -165,3 +165,7 @@ footer {
   font-size: 0.8em;
   color: var(--color-footer-text);
 }
+
+.required {
+  color: var(--color-required);
+}
