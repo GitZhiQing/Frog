@@ -1,20 +1,37 @@
 import os
 import sys
 from pathlib import Path
+from typing import Literal
 
 from dotenv import load_dotenv
 
-load_dotenv()
-
 
 class Config:
-    DATA_ROOT = Path(__file__).parent.parent / "data"
-    MD_ROOT = DATA_ROOT / "docs"
-    DATABASE_ROOT = DATA_ROOT / "data.db"
-    prefix = "sqlite:///" if sys.platform.startswith("win") else "sqlite:////"
+    """默认配置 - 开发环境"""
 
-    SECRET_KEY = os.getenv("SECRET_KEY")
-    SQLALCHEMY_DATABASE_URI = f"{prefix}{DATABASE_ROOT}?check_same_thread=False"
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    ARTICLE_IMAGE_PATH = DATA_ROOT / "imgs"
-    MD_ROOT = MD_ROOT
+    SECRET_KEY: str = os.getenv("SECRET_KEY")
+    FLASK_ENV: Literal["development", "production"] = "production"
+    DEBUG: bool = False
+    FLASK_DEBUG: bool = False
+
+    DATA_DIR: Path = Path(__file__).parent.parent / "data"
+    POST_DIR: Path = DATA_DIR / "posts"
+    POST_IMGS_DIR: Path = DATA_DIR / "imgs"
+    DATABASE_PATH: Path = DATA_DIR / "db" / "data.db"
+    __prefix: str = "sqlite:///" if sys.platform.startswith("win") else "sqlite:////"
+    SQLALCHEMY_DATABASE_URI: str = f"{__prefix}{DATABASE_PATH}"
+
+
+class ProductionConfig(Config):
+    """生产配置"""
+
+    FLASK_ENV: Literal["development", "production"] = "production"
+    DEBUG: bool = False
+
+
+load_dotenv()
+flask_env = os.getenv("FLASK_ENV", "development")
+if flask_env == "production":
+    config = ProductionConfig
+else:
+    config = Config

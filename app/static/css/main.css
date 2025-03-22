@@ -1,171 +1,176 @@
-@import url('variables.css');
+@import url("variables.css");
 
 * {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  box-sizing: border-box;
-  font-size: 100%;
-  vertical-align: baseline;
-  scrollbar-width: thin;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Roboto, "Noto Sans SC", sans-serif;
+    transition:
+        background-color var(--transition-duration) ease,
+        color var(--transition-duration) ease;
+}
+
+html {
+    font-size: 16px;
 }
 
 body {
-  line-height: 1.6;
-  font-size: 14px;
-  background: var(--color-background);
-  color: var(--color-text);
-  /* 解决滚动条造成的页面抖动问题 */
-  padding-left: calc(100vw - 100%);
+    line-height: 1.5;
+    color: var(--color-text);
+    background-color: var(--color-bg-body);
+    transition:
+        background-color 0.3s,
+        color 0.3s;
 }
 
-.header-top {
-  display: flex;
-  align-items: center;
-  margin: 0 auto 2rem 0;
-  width: fit-content;
+.flash {
+    position: fixed;
+    top: -5rem;
+    left: 50%;
+    z-index: 1000;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: var(--color-text);
+    background-color: var(--color-bg-container);
+    transform: translateX(-50%);
+    transition: top 0.5s ease-in-out;
 }
 
-.header-top img {
-  width: 3.8rem;
-  height: 3.8rem;
-  margin-right: 1rem;
-}
-
-.blog-info {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.blog-info h1 {
-  font-size: 1.5em;
-  margin: 0;
-}
-
-.blog-info p {
-  margin: 0;
-  font-size: 1em;
-}
-
-nav {
-  font-size: 0.85rem;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
-}
-
-nav a {
-  margin-right: 1rem;
-  color: var(--color-link);
-  text-decoration: none;
-}
-
-.current-page {
-  color: var(--color-link);
-  font-weight: bold;
+.flash.show {
+    top: 2rem;
 }
 
 .container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 3rem;
-  background: var(--color-container-background);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 3rem;
+    border-radius: 3px;
+    background: var(--color-bg-container);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-ul,
-ol {
-  margin: 0.5rem;
-}
-
-li {
-  margin: 0.25rem 0.5rem;
-}
-
+/* 覆盖 a 标签样式 */
 a {
-  color: var(--color-link);
-  text-decoration: none;
+    color: var(--color-primary);
+    text-decoration: none;
+    line-height: 1.2;
+    vertical-align: baseline;
+    display: inline-block;
+    border-bottom: 1px dotted var(--color-primary);
+    transition:
+        color 0.3s ease,
+        var(--color-border) 0.3s ease;
 }
 
 a:hover {
-  color: var(--color-link-hover);
-  text-decoration: underline;
+    border-bottom: 1px solid var(--color-primary);
 }
 
 a:focus {
-  color: var(--color-link-hover);
-  outline: thin dotted;
+    outline: 1px solid var(--color-primary);
+    outline-offset: 2px;
 }
 
 a:visited {
-  color: var(--color-link-visited);
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-text);
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  clear: both;
-  margin: 1.5rem 0 1rem;
+/* header */
+header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
 }
 
-del {
-  color: var(--color-text);
+.header-avatar {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    margin-right: 1.5rem;
+    object-fit: cover;
 }
 
-ins {
-  background: var(--color-highlight);
-  text-decoration: none;
+.header-title {
+    display: flex;
+    flex-direction: column;
 }
 
-hr {
-  background-color: var(--color-border);
-  border: 0;
-  height: 1px;
-  margin: 24px 0 1.72rem;
+.header-title h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 0.5rem 0;
 }
 
-sub,
-sup {
-  font-size: 75%;
-  line-height: 0;
-  position: relative;
-  vertical-align: baseline;
+.header-title p {
+    color: var(--color-text);
+    opacity: 0.8;
 }
 
-sup {
-  top: -0.5em;
+/* 导航栏 */
+nav {
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
 }
 
-sub {
-  bottom: -0.25em;
+nav ul {
+    display: flex;
+    list-style: none;
+    justify-content: left;
+    gap: 2rem;
 }
 
-small {
-  font-size: smaller;
+nav ul li {
+    align-self: center;
+    padding: 0.3rem;
+    display: inline-block;
 }
 
-img {
-  border: 0;
-  display: block;
-  margin: 0 auto;
-  max-width: 100%;
-  -ms-interpolation-mode: bicubic;
+nav a {
+    color: var(--color-text);
+    text-decoration: none;
+    border-bottom: none;
 }
 
+nav a:focus {
+    outline: none;
+}
+
+nav a.active {
+    color: var(--color-primary);
+}
+
+/* 主题切换按钮 */
+.theme-toggle {
+    position: fixed;
+    top: 1.5rem;
+    right: 2.5rem;
+    background: none;
+    border: 2px solid var(--color-border);
+    color: var(--color-text);
+    padding: 0.5rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.theme-toggle:hover {
+    background-color: var(--color-text);
+    color: var(--bg-color);
+}
+
+main {
+    padding: 1rem 0 0.2rem 0;
+}
+
+/* 页脚 */
 footer {
-  border-top: 1px solid var(--color-border);
-  padding: 1.5rem 0 0 0;
-  margin: 2rem 0 0 0;
-  text-align: center;
-  font-size: 0.8em;
-  color: var(--color-footer-text);
-}
-
-.required {
-  color: var(--color-required);
+    border-top: 1px solid var(--color-border);
+    padding: 1.5rem 0 0 0;
+    text-align: center;
+    font-size: 0.8em;
 }

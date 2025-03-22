@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "format": "prettier app/templates/**/*.html --write",
+    "format:check": "prettier app/templates/**/*.html --check"
+  },
+  "packageManager": "pnpm@10.5.2",
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "prettier-plugin-jinja-template": "^2.0.0"
+  }
+}

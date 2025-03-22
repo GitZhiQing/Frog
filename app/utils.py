@@ -1,191 +1,102 @@
+from datetime import datetime
 from pathlib import Path
 
 import frontmatter
-from flask import flash, redirect, render_template, request, url_for
-
-from app import models
-from app.extensions import db
+from flask import current_app, url_for
+from loguru import logger
 
 
-def get_dir_tree(root: str) -> dict:
-    """递归获取指定目录的目录树"""
-    root = Path(root)
-    if not root.is_dir():
-        return {}
-    tree = {}
-    for item in root.iterdir():
-        if item.is_dir():
-            tree[item.name] = get_dir_tree(item)
-        else:
-            tree[item.name] = None
-    return tree
+def inject_env_vars():
+    now = datetime.now()
+    env_vars = {
+        "BLOG_NAME": current_app.config.get("BLOG_NAME", "Frog"),
+        "BLOG_INTRO": current_app.config.get("BLOG_INTRO", "Gua Gua Gua"),
+        "BLOG_AVATAR": current_app.config.get(
+            "BLOG_AVATAR",
+            url_for("static", filename="favicon.svg"),
+        ),
+        "NOW": {
+            "year": now.year,
+            "month": now.month,
+            "day": now.day,
+            "hour": now.hour,
+            "minute": now.minute,
+            "second": now.second,
+        },
+    }
+
+    return env_vars
 
 
-def init_articles(root: Path) -> None:
-    """递归获取指定目录的目录树，同时将所有 markdown 文档写入数据库"""
-    tree = get_dir_tree(root)
-    for name, subtree in tree.items():
-        if subtree is not None:
-            init_articles(root / name)
-        else:
-            if name.endswith(".md"):
-                md_path = root / name
-                _, metadata = parse_md(md_path)
-                category_name = root.name if root.name != "docs" else "root"
-                category = models.Category.query.filter_by(name=category_name).first()
-                if not category:
-                    category = models.Category(name=category_name)
-                    db.session.add(category)
-                    db.session.commit()
-                article = models.Article(
-                    path=str(md_path),
-                    title=metadata.get("title", ""),
-                    category_id=category.id,
-                    created_at=metadata.get("date", ""),
-                )
-                db.session.add(article)
-                db.session.commit()
+def get_flat_dir_tree(root_dir: Path):
+    """扫描目录并返回扁平化文件结构列表"""
+    if not root_dir.is_dir():
+        raise ValueError(f"路径不存在或不是目录: {root_dir}")
 
-                # 处理标签
-                tags = metadata.get("tags", [])
-                for tag_name in tags:
-                    tag = models.Tag.query.filter_by(name=tag_name).first()
-                    if not tag:
-                        tag = models.Tag(name=tag_name)
-                        db.session.add(tag)
-                        db.session.commit()
-                    article.tags.append(tag)
-                db.session.commit()
+    flat_dir_tree = []
+    dir_set = set()
 
-
-def get_doc_path(root: Path, doc_name: str) -> str:
-    """根据根目录获取指定文件的路径
-    只返回第一个匹配的文件路径
-    """
-    tree = get_dir_tree(root)
-    md_name = f"{doc_name}.md"
-
-    def find_path(tree, current_path):
-        for name, subtree in tree.items():
-            if name == md_name:
-                return current_path / name
-            if subtree is not None:
-                result = find_path(subtree, current_path / name)
-                if result:
-                    return result
-        return None
-
-    return find_path(tree, root)
-
-
-def get_md_files(root: Path) -> list:
-    """获取根目录下一级的 Markdown 文件的路径"""
-    return list(root.glob("*.md"))
-
-
-def parse_md(md_path: str) -> tuple[str, dict]:
-    """解析 markdown 文件"""
-    with open(md_path, encoding="utf-8") as f:
-        post = frontmatter.load(f)
-        md_content = post.content
-        metadata = post.metadata
-        metadata["word_count"] = len(md_content)
-        html_content = convert_md_to_html(md_content)
-    return html_content, metadata
-
-
-def convert_md_to_html(md_content: str) -> str:
-    """将 markdown 内容转换为 HTML"""
-    from app.markdown import markdown
-
-    return markdown(md_content)
-
-
-def get_nav_data(md_root: Path) -> list:
-    """获取导航栏数据"""
-    nav_data = []
-    # 动态导航页面
-    for md_file in get_md_files(md_root):
-        _, metadata = parse_md(md_file)
-        nav_data.append(
-            {
-                "name": metadata.get("nav_name", ""),
-                "route": metadata.get("nav_route", ""),
-                "order": metadata.get("nav_order", 0),
-                "type": "dynamic",
-            }
+    def _process_entry(entry_path: Path):
+        """处理单个路径条目，生成扁平化记录"""
+        # 计算父目录相对于根目录的路径
+        try:
+            parent_relative = entry_path.parent.relative_to(root_dir)
+            directory = str(parent_relative) if parent_relative != Path(".") else "root"
+        except ValueError:
+            directory = "root"  # 处理根目录自身的情况
+        dir_set.add(directory)
+        flat_dir_tree.append(
+            {"name": entry_path.name, "type": "directory" if entry_path.is_dir() else "file", "directory": directory}
         )
 
-    # 默认导航页面
-    nav_data.extend(
-        [
-            {
-                "name": "分类",
-                "route": "categories",
-                "order": 1000,
-                "type": "static",
-            },
-            {
-                "name": "标签",
-                "route": "tags",
-                "order": 1001,
-                "type": "static",
-            },
-            {
-                "name": "归档",
-                "route": "archive",
-                "order": 1002,
-                "type": "static",
-            },
-        ]
-    )
+        # 如果是目录则递归处理
+        if entry_path.is_dir():
+            for child in sorted(entry_path.iterdir(), key=lambda x: x.name):
+                try:
+                    if child.exists():  # 跳过无效符号链接等
+                        _process_entry(child)
+                except PermissionError:
+                    pass  # 跳过无权限访问的条目
 
-    return sorted(nav_data, key=lambda x: x["order"])
+    # 从根目录开始处理（包含自身）
+    _process_entry(root_dir)
+
+    # 修正根目录的 directory 字段为 "root"
+    if flat_dir_tree:
+        flat_dir_tree[0]["directory"] = "root"
+
+    return flat_dir_tree, dir_set
 
 
-def nav_view_func(md_file: Path) -> str:
-    """导航栏视图函数"""
-    html_content, metadata = parse_md(md_file)
-    active_nav_route = metadata.get("nav_route", "")
-    enable_comment = metadata.get("comment", False)
+def add_post_tags(dir_tree: list[dict[str, str]], root_dir: Path):
+    """为目录树中的 Markdown 文件添加 tags 元数据"""
+    tag_set = set()
+    for item in dir_tree:
+        # 仅处理 markdown 文件
+        if item["type"] == "file" and item["name"].endswith(".md"):
+            try:
+                # 构建完整文件路径
+                parent_dir = item["directory"]
+                if parent_dir == "root":
+                    file_path = root_dir / item["name"]
+                else:
+                    file_path = root_dir / parent_dir / item["name"]
 
-    new_comment_id = None
-    if request.method == "POST" and enable_comment:
-        content = request.form.get("content")
-        author = request.form.get("author")
-        website = request.form.get("website", "#")
-        email = request.form.get("email", "")
-        parent_id = request.form.get("parent_id")
-        if content and author:
-            new_comment = models.Comment(
-                article_id=str(md_file),
-                content=content,
-                author=author,
-                website=website,
-                email=email,
-                parent_id=parent_id,
-            )
-            db.session.add(new_comment)
-            db.session.commit()
-            new_comment_id = new_comment.id
-            flash("评论成功", "success")
-            return redirect(
-                url_for(request.endpoint, _anchor=f"comment-{new_comment_id}")
-            )
+                # 读取文件内容并解析 frontmatter
+                with open(file_path, encoding="utf-8") as f:
+                    post = frontmatter.load(f)
 
-    comments = []
-    if enable_comment:
-        comments = models.Comment.query.filter_by(
-            article_id=str(md_file), parent_id=""
-        ).all()
+                # 提取 tags 并标准化为列表
+                tags = post.metadata.get("tags", [])
+                if not isinstance(tags, list):
+                    tags = [str(tags)] if tags else []
 
-    return render_template(
-        "nav_page.html",
-        nav_data=get_nav_data(md_file.parent),
-        html_content=html_content,
-        active_nav_route=active_nav_route,
-        metadata=metadata,
-        enable_comment=enable_comment,
-        comments=comments,
-        new_comment_id=new_comment_id,
-    )
+                # 添加 tags 字段到目录树条目
+                item["tags"] = tags
+                tag_set.update(tags)
+            except Exception as e:
+                # 异常处理（可根据需要记录日志）
+                logger.error(f"文档 [{item["name"]}] tag 解析错误: {e}")
+                item["tags"] = []
+
+    return dir_tree, tag_set

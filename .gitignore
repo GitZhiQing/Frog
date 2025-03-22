@@ -1,6 +1,6 @@
 # dev
 dev-docs/
-test/
+tmp/
 
 # editor settings
 .idea/
@@ -16,7 +16,8 @@ test/
 .venv/
 
 # data
-*.db
+**/db/*
+!**/db/.gitkeep
 logs/
 
 # python cache
@@ -24,3 +25,6 @@ __pycache__/
 
 # cache
 .*cache/
+
+# frontend
+node_modules/

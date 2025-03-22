@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block subtitle %}{{ title }}{% endblock %}
+{% block links %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/remarkable/1.7.4/remarkable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css"
+  />
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='css/markdown.css') }}"
+  />
+{% endblock %}
+
+{% block content %}
+  <div id="md-container" class="markdown-body"></div>
+  <div class="metadata">
+    <div class="metadata-left">
+      {% if category %}
+        <span class="metadata-item">
+          分类:
+          <a href="{{ url_for('nav.archive', category=category) }}"
+            >{{ category }}</a
+          >
+        </span>
+      {% endif %}
+      {% if tags %}
+        <span class="metadata-item">
+          标签:
+          {% for tag in tags %}
+            <span class="tag">
+              <a href="{{ url_for('nav.archive', tag=tag) }}"
+                >{{ tag }}</a
+              ></span
+            >
+          {% endfor %}
+        </span>
+      {% endif %}
+    </div>
+    {% if date %}
+      <div class="metadata-right">
+        <span class="metadata-date">写作于 {{ date }}</span>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+    // DOM 工具类
+    const DOM = {
+      get: (selector) => document.querySelector(selector),
+      create: (tag, className, text) => {
+        const el = document.createElement(tag);
+        if (className) el.className = className;
+        if (text) el.textContent = text;
+        return el;
+      },
+    };
+
+    // Markdown 处理器
+    class MarkdownProcessor {
+      constructor() {
+        this.md = new Remarkable("full", {
+          html: true,
+          breaks: true,
+          langPrefix: "language-",
+          linkify: true,
+          linkTarget: "_blank",
+          highlight: this.highlightCode,
+        });
+        this.output = DOM.get("#md-container");
+      }
+
+      highlightCode(str, lang) {
+        return hljs.getLanguage(lang)
+          ? hljs.highlight(str, { language: lang }).value
+          : hljs.highlightAuto(str).value;
+      }
+
+      async render(content) {
+        this.output.innerHTML = this.md.render(content);
+        hljs.highlightAll();
+        this.processCodeBlocks();
+        this.renderMath();
+      }
+
+      processCodeBlocks() {
+        document.querySelectorAll("pre code").forEach((codeBlock) => {
+          const lang = this.getCodeLanguage(codeBlock);
+          const wrapper = codeBlock.closest("pre");
+          wrapper.classList.add("code-wrapper");
+          wrapper.append(
+            this.createLanguageTag(lang),
+            this.createCopyButton(codeBlock),
+          );
+        });
+      }
+
+      getCodeLanguage(codeBlock) {
+        const className = codeBlock.className.split(" ")[0];
+        return className.includes("language-")
+          ? className.replace("language-", "")
+          : "code";
+      }
+
+      createLanguageTag(lang) {
+        return DOM.create("span", "code-language", lang);
+      }
+
+      createCopyButton(codeBlock) {
+        const button = DOM.create("button", "copy-btn", "复制");
+        button.onclick = () => this.handleCopy(codeBlock, button);
+        return button;
+      }
+
+      handleCopy(codeBlock, button) {
+        navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+          button.textContent = "已复制";
+          setTimeout(() => (button.textContent = "复制"), 2000);
+        });
+      }
+
+      renderMath() {
+        renderMathInElement(this.output, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+          ],
+          ignoredTags: [
+            "script",
+            "noscript",
+            "style",
+            "textarea",
+            "pre",
+            "code",
+          ],
+        });
+      }
+    }
+
+    // 定义应用
+    class App {
+      static async init() {
+        const processor = new MarkdownProcessor();
+        try {
+          const response = await fetch(
+            "{{ url_for('posts.get_post', title=title) }}",
+          );
+          if (!response.ok) throw new Error(`加载失败: ${response.status}`);
+          const content = await response.text();
+          processor.render(content);
+        } catch (error) {
+          console.error("初始化失败:", error);
+          processor.render("# 内容加载失败\n请检查文件路径或网络连接");
+        }
+      }
+    }
+
+    // 启动应用
+    document.addEventListener("DOMContentLoaded", App.init);
+  </script>
+{% endblock %}

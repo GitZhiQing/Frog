@@ -1,9 +1,25 @@
-{% extends 'base.html' %} {% block subtitle %}
-  500 - 不如意事常八九
-{% endblock %}
+{% extends 'base.html' %}
+{% block subtitle %}500 - 一念瞋心起{% endblock %}
 {% block styles %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/error.css') }}" />
-{% endblock %} {% block content %}
-  <h1>500</h1>
-  <p>不如意事常八九，可与人言无二三</p>
+  <style>
+    .error {
+      text-align: center;
+      margin: 1rem 0 2rem 0;
+    }
+    .error h1 {
+      color: var(--color-primary);
+    }
+    .error p {
+      margin: 1rem;
+      font-style: italic;
+      text-indent: 1rem;
+    }
+  </style>
+{% endblock %}
+{% block content %}
+  <div class="error">
+    <h1>500</h1>
+    <p>一念瞋心起，百万障门开。</p>
+    <a href="{{ url_for('nav.index') }}">< 流水不腐</a>
+  </div>
 {% endblock %}

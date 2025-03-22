@@ -1,23 +1,54 @@
 {% extends 'base.html' %}
 
-{% block subtitle %}
-  归档
+{% block subtitle %}{{ title }}{% endblock %}
+{% block styles %}
+  <style>
+    .timeline-year {
+      margin: 1rem 0;
+    }
+    .timeline-items {
+      margin-left: 0.5rem;
+    }
+    .timeline-items p {
+      border-left: 2px solid var(--color-border);
+      padding: 0 0.5rem;
+    }
+    .timeline-item {
+      padding: 0.2rem;
+      transition: all 0.2s;
+      border-bottom: none;
+    }
+    .timeline-item:hover {
+      text-decoration: underline;
+      border-bottom: none;
+    }
+    .date {
+      color: var(--color-text-secondary);
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
-  <h2>归档</h2>
-  {% for year, articles in archive.items() %}
-    <h5>{{ year }} ({{ articles|length }})</h5>
-    <ul>
-      {% for item in articles %}
-        <li>
-          {{ item.month_day }} <a href="{{ url_for('main.article', title=item.article.title) }}">{{ item.article.title }}</a>
-        </li>
-      {% endfor %}
-    </ul>
+  分类：{{ category }}&emsp;|&emsp;标签：{{ tag }}
+  {% for year in sorted_years %}
+    <div class="timeline-year">
+      <h3>{{ year }} ({{ grouped_posts[year] | length }})</h3>
+      <div class="timeline-items">
+        {% for post in grouped_posts[year] %}
+          <p>
+            <span class="date">{{ post.date }}</span>
+            <a
+              href="{{ url_for('posts.get_post', title=post.title, action='read') }}"
+              class="timeline-item"
+            >
+              <span class="title">{{ post.title }}</span>
+            </a>
+          </p>
+        {% endfor %}
+      </div>
+    </div>
   {% endfor %}
 {% endblock %}
 
 {% block scripts %}
-  <script></script>
 {% endblock %}

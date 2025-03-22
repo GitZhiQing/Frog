@@ -1,57 +1,149 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>
-      {% block subtitle %}
-
-      {% endblock %}| {{ blog_name }}
-    </title>
+    <title>{% block subtitle %}{% endblock %} | {{ BLOG_NAME }}</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tocbot/4.12.0/tocbot.css" type="text/css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/error.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/flash.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/variables.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" type="text/css" />
-    {% block styles %}
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Noto+Sans+SC&family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='css/variables.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='css/main.css') }}"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css"
+      id="highlight-light"
+      rel="stylesheet"
+      disabled
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+      id="highlight-dark"
+      rel="stylesheet"
+      disabled
+    />
 
+    <script>
+      (() => {
+        const savedTheme = localStorage.getItem("theme");
+        const systemIsDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
+        const initialTheme = savedTheme || (systemIsDark ? "dark" : "light");
+        document.documentElement.dataset.theme = initialTheme;
+
+        // 切换 highlight 样式表
+        document.getElementById("highlight-light").disabled =
+          savedTheme !== "light";
+        document.getElementById("highlight-dark").disabled =
+          savedTheme !== "dark";
+      })();
+    </script>
+    {% block links %}
+    {% endblock %}
+    {% block styles %}
     {% endblock %}
   </head>
-
   <body>
     {% for message in get_flashed_messages() %}
       <div class="flash">{{ message }}</div>
     {% endfor %}
-
+    <button class="theme-toggle" aria-label="切换主题">
+      <span class="toggle-icon">🌓</span>
+    </button>
     <div class="container">
       <header>
-        <div class="header-top">
-          <img src="{{ url_for('static', filename='favicon.svg') }}" alt="logo" />
-          <div class="blog-info">
-            <h1>{{ blog_name }}</h1>
-            <p>{{ blog_desc }}</p>
-          </div>
+        <img class="header-avatar" src="{{ BLOG_AVATAR }}" />
+        <div class="header-title">
+          <h1>{{ BLOG_NAME }}</h1>
+          <p>{{ BLOG_INTRO }}</p>
         </div>
-        <nav>
-          {% for item in nav_data %}
-            <a href="/{{ item.route }}" class="{% if active_nav_route == item.route %}current-page{% endif %}">{{ item.name }}</a>
-          {% endfor %}
-        </nav>
       </header>
-      {% block content %}
-
-      {% endblock %}
+      <nav>
+        <ul>
+          <li>
+            <a
+              href="{{ url_for('nav.index') }}"
+              class="{{ 'active' if request.path in ['/', '/index'] }}"
+              >首页</a
+            >
+          </li>
+          <li>
+            <a
+              href="{{ url_for('nav.about') }}"
+              class="{{ 'active' if request.path in ['/about'] }}"
+              >关于</a
+            >
+          </li>
+          <li>
+            <a
+              href="{{ url_for('nav.status') }}"
+              class="{{ 'active' if request.path in ['/status'] }}"
+              >状态</a
+            >
+          </li>
+          <li>
+            <a
+              href="{{ url_for('nav.archive') }}"
+              class="{{ 'active' if request.path in ['/archive'] }}"
+              >归档</a
+            >
+          </li>
+        </ul>
+      </nav>
+      <main>
+        {% block content %}
+        {% endblock %}
+      </main>
       <footer>
-        &copy; 2024-now
+        &copy; 2025-{{ NOW.year }}
         <a href="https://github.com/GitZhiQing/Frog" target="_blank">Frog</a>
       </footer>
-      <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-      {% block scripts %}
-
-      {% endblock %}
     </div>
+    <script>
+      const themeToggle = document.querySelector(".theme-toggle");
+      const toggleIcon = document.querySelector(".toggle-icon");
+      const html = document.documentElement;
+
+      // 更新主题状态
+      const updateTheme = (isDark) => {
+        const theme = isDark ? "dark" : "light";
+        html.dataset.theme = theme;
+        toggleIcon.textContent = isDark ? "🌙" : "☀️";
+        localStorage.setItem("theme", theme);
+
+        // 切换 highlight 样式表
+        document.getElementById("highlight-light").disabled = theme !== "light";
+        document.getElementById("highlight-dark").disabled = theme !== "dark";
+      };
+
+      // 切换主题
+      themeToggle.addEventListener("click", () => {
+        const isDark = html.dataset.theme === "dark";
+        updateTheme(!isDark);
+      });
+
+      // 监听系统主题变化
+      const colorSchemeQuery = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      );
+      colorSchemeQuery.addEventListener("change", (e) => {
+        if (!localStorage.getItem("theme")) {
+          updateTheme(e.matches);
+        }
+      });
+    </script>
+    {% block scripts %}
+    {% endblock %}
   </body>
 </html>

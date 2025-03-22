@@ -1,11 +1,25 @@
-{% extends 'base.html' %} {% block subtitle %}
-  404 - 本来无一物
-{% endblock %}
+{% extends 'base.html' %}
+{% block subtitle %}404 - 本来无一物{% endblock %}
 {% block styles %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/error.css') }}" />
-{% endblock %} {% block content %}
+  <style>
+    .error {
+      text-align: center;
+      margin: 1rem 0 2rem 0;
+    }
+    .error h1 {
+      color: var(--color-primary);
+    }
+    .error p {
+      margin: 1rem;
+      font-style: italic;
+      text-indent: 1rem;
+    }
+  </style>
+{% endblock %}
+{% block content %}
   <div class="error">
     <h1>404</h1>
     <p>本来无一物，何处惹尘埃。</p>
+    <a href="{{ url_for('nav.index') }}">< 回头是岸</a>
   </div>
 {% endblock %}
