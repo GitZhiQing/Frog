@@ -1,9 +1,9 @@
-from flask import Flask, send_from_directory
+from flask import Flask
 
+from app.app_init import db_init, inject_vars, register_error, register_image_routes
 from app.commands import register_commands
 from app.config import config
 from app.extensions import db
-from app.utils import inject_env_vars
 
 
 def create_app() -> Flask:
@@ -16,30 +16,23 @@ def create_app() -> Flask:
     # 注册命令行命令
     register_commands(app)
 
-    # 上下文管理器
-    app.context_processor(inject_env_vars)
-
     # 注册蓝图
     from app.blueprints import blueprints
 
     for bp in blueprints:
         app.register_blueprint(bp)
 
-    # 注册图片文件路由
-    register_imgs_routes(app)
-
     # 注册错误处理
+    register_error(app)
+
+    # 注册图片文件路由
+    register_image_routes(app)
+
+    # 模板上下文处理器
+    app.context_processor(inject_vars)
+
+    # 初始化数据库
     with app.app_context():
-        from app import errors  # noqa
+        db_init()
+
     return app
-
-
-def register_imgs_routes(app: Flask) -> None:
-    """注册图片文件路由"""
-
-    @app.route("/imgs/<path:filename>")
-    def article_image(filename):
-        """
-        文章图片
-        """
-        return send_from_directory(str(app.config.get("POST_IMGS_DIR")), filename)

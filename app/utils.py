@@ -1,31 +1,8 @@
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import frontmatter
-from flask import current_app, url_for
 from loguru import logger
-
-
-def inject_env_vars():
-    now = datetime.now()
-    env_vars = {
-        "BLOG_NAME": current_app.config.get("BLOG_NAME", "Frog"),
-        "BLOG_INTRO": current_app.config.get("BLOG_INTRO", "Gua Gua Gua"),
-        "BLOG_AVATAR": current_app.config.get(
-            "BLOG_AVATAR",
-            url_for("static", filename="favicon.svg"),
-        ),
-        "NOW": {
-            "year": now.year,
-            "month": now.month,
-            "day": now.day,
-            "hour": now.hour,
-            "minute": now.minute,
-            "second": now.second,
-        },
-    }
-
-    return env_vars
 
 
 def get_flat_dir_tree(root_dir: Path):
@@ -68,8 +45,8 @@ def get_flat_dir_tree(root_dir: Path):
     return flat_dir_tree, dir_set
 
 
-def add_post_tags(dir_tree: list[dict[str, str]], root_dir: Path):
-    """为目录树中的 Markdown 文件添加 tags 元数据"""
+def add_post_meta(dir_tree: list[dict[str, str]], root_dir: Path):
+    """为目录树中的 Markdown 文件添加元数据"""
     tag_set = set()
     for item in dir_tree:
         # 仅处理 markdown 文件
@@ -88,15 +65,19 @@ def add_post_tags(dir_tree: list[dict[str, str]], root_dir: Path):
 
                 # 提取 tags 并标准化为列表
                 tags = post.metadata.get("tags", [])
+                date: datetime = post.metadata.get("date")
+                if date:
+                    date_utc = date - timedelta(hours=8)
+                    item["created_at"] = int(date_utc.replace(tzinfo=UTC).timestamp())
+
                 if not isinstance(tags, list):
                     tags = [str(tags)] if tags else []
-
                 # 添加 tags 字段到目录树条目
                 item["tags"] = tags
                 tag_set.update(tags)
             except Exception as e:
                 # 异常处理（可根据需要记录日志）
-                logger.error(f"文档 [{item["name"]}] tag 解析错误: {e}")
+                logger.error(f"文档 [{item["name"]}] 元数据解析错误: {e}")
                 item["tags"] = []
 
     return dir_tree, tag_set

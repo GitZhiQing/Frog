@@ -1,6 +1,6 @@
 import time
 
-from flask import current_app, render_template, request
+from flask import render_template, request
 from sqlalchemy import select
 
 from app.blueprints.nav import nav_bp
