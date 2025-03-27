@@ -76,6 +76,7 @@ def db_init():
                 directory = item["directory"]
                 tags = item.get("tags", [])
                 created_at = item.get("created_at")
+                relative_path = item.get("relative_path")
                 # 处理 Category
                 category = (
                     db.session.execute(select(models.Category).where(models.Category.name == directory))
@@ -96,7 +97,9 @@ def db_init():
                     tag_objs.append(tag)
 
                 # 创建 Post 并关联
-                post = models.Post(title=title, category=category, tags=tag_objs, created_at=created_at)
+                post = models.Post(
+                    title=title, category=category, tags=tag_objs, created_at=created_at, relative_path=relative_path
+                )
                 db.session.add(post)
 
         db.session.commit()

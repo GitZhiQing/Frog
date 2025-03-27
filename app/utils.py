@@ -46,18 +46,20 @@ def get_flat_dir_tree(root_dir: Path):
 
 
 def add_post_meta(dir_tree: list[dict[str, str]], root_dir: Path):
-    """为目录树中的 Markdown 文件添加元数据"""
+    """为目录树中的 Markdown 文件添加元数据，并新增相对路径属性"""
     tag_set = set()
     for item in dir_tree:
-        # 仅处理 markdown 文件
         if item["type"] == "file" and item["name"].endswith(".md"):
             try:
-                # 构建完整文件路径
                 parent_dir = item["directory"]
+                # 构建绝对路径
                 if parent_dir == "root":
                     file_path = root_dir / item["name"]
                 else:
                     file_path = root_dir / parent_dir / item["name"]
+
+                # 计算相对于 root_dir 的路径
+                item["relative_path"] = file_path.relative_to(root_dir).as_posix()
 
                 # 读取文件内容并解析 frontmatter
                 with open(file_path, encoding="utf-8") as f:
@@ -72,12 +74,9 @@ def add_post_meta(dir_tree: list[dict[str, str]], root_dir: Path):
 
                 if not isinstance(tags, list):
                     tags = [str(tags)] if tags else []
-                # 添加 tags 字段到目录树条目
                 item["tags"] = tags
                 tag_set.update(tags)
             except Exception as e:
-                # 异常处理（可根据需要记录日志）
-                logger.error(f"文档 [{item["name"]}] 元数据解析错误: {e}")
+                logger.error(f"文档 [{item['name']}] 元数据解析错误: {e}")
                 item["tags"] = []
-
     return dir_tree, tag_set
