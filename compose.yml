@@ -1,0 +1,10 @@
+services:
+  web:
+    build: .
+    image: frog
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - data:/app/data
