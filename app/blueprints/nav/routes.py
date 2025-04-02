@@ -1,4 +1,3 @@
-import time
 from datetime import UTC, datetime, timedelta
 
 from flask import render_template, request

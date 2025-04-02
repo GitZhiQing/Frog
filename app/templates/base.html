@@ -107,7 +107,8 @@
       </main>
       <footer>
         &copy; 2025-{{ NOW.year }}
-        <a href="https://github.com/GitZhiQing/Frog" target="_blank">Frog</a>
+        <a href="https://github.com/GitZhiQing/Frog" target="_blank">Frog</a> |
+        访客数：<span id="uv-counter"></span>
       </footer>
     </div>
     <script>
@@ -142,6 +143,22 @@
           updateTheme(e.matches);
         }
       });
+
+      function refreshUV() {
+        fetch("{{ url_for('manage.total_uv') }}")
+          .then((response) => {
+            if (!response.ok) throw new Error("网络响应异常");
+            return response.json();
+          })
+          .then((data) => {
+            document.getElementById("uv-counter").textContent = data.count;
+          })
+          .catch((error) => {
+            console.error("请求失败:", error);
+            document.getElementById("uv-counter").textContent = "更新失败";
+          });
+      }
+      refreshUV();
     </script>
     {% block scripts %}
     {% endblock %}

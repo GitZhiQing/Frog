@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 
 from flask import Flask, current_app, render_template, send_from_directory, url_for
@@ -18,7 +17,7 @@ def register_error(app: Flask) -> None:
 
     @app.errorhandler(500)
     def internal_server_error(e):
-        logging.exception(e)
+        logger.error(e)
         return render_template("errors/500.html"), 500
 
 

@@ -4,6 +4,7 @@ from app.app_init import db_init, inject_vars, register_error, register_image_ro
 from app.commands import register_commands
 from app.config import config
 from app.extensions import db
+from app.hooks import register_hooks
 
 
 def create_app() -> Flask:
@@ -34,5 +35,8 @@ def create_app() -> Flask:
     # 初始化数据库
     with app.app_context():
         db_init()
+
+    # 请求钩子
+    register_hooks(app)
 
     return app
