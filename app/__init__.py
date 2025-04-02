@@ -34,7 +34,8 @@ def create_app() -> Flask:
 
     # 初始化数据库
     if app.config.get("FLASK_ENV", "development") != "production":
-        db_init(app)
+        with app.app_context():
+            db_init()
 
     # 请求钩子
     register_hooks(app)
