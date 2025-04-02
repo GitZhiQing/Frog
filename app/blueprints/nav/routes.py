@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 
 from flask import render_template, request
 from sqlalchemy import select
@@ -33,7 +34,7 @@ def status():
         # 默认只取最新一条
         latest_post = posts[0] if posts else None
         post_title = latest_post.title
-        date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(latest_post.created_at))
+        date = datetime.fromtimestamp(latest_post.created_at).strftime("%Y-%m-%d %H:%M:%S")
         return render_template("status.html", title="当前状态", post_title=post_title, date=date)
 
     # 历史模式：按年份分组
@@ -45,7 +46,7 @@ def status():
         grouped_posts[year].append(
             {
                 "title": post.title,
-                "date": time.strftime("%m/%d", time.localtime(post.created_at)),
+                "date": datetime.fromtimestamp(post.created_at).strftime("%m/%d"),
                 "created_at": post.created_at,
             }
         )
@@ -80,13 +81,13 @@ def archive():
     )
     grouped_posts = {}
     for post in posts:
-        year = time.strftime("%Y", time.localtime(post.created_at))
+        year = datetime.fromtimestamp(post.created_at).strftime("%Y")
         if year not in grouped_posts:
             grouped_posts[year] = []
         grouped_posts[year].append(
             {
                 "title": post.title,
-                "date": time.strftime("%m/%d", time.localtime(post.created_at)),
+                "date": datetime.fromtimestamp(post.created_at).strftime("%m/%d"),
                 "created_at": post.created_at,
             }
         )

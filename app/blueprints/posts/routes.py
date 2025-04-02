@@ -1,5 +1,5 @@
 import io
-import time
+from datetime import datetime
 
 import frontmatter
 from flask import abort, current_app, render_template, request, send_file
@@ -31,5 +31,5 @@ def get_post(title: str):
         tags = []
         for tag in post.tags:
             tags.append(tag.name)
-        date = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(post.created_at))
+        date = datetime.fromtimestamp(post.created_at).strftime("%Y-%m-%d %H:%M:%S")
         return render_template("post.html", title=title, category=category, tags=tags, date=date)
