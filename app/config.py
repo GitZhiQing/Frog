@@ -19,7 +19,7 @@ class Config:
     POST_IMGS_DIR: Path = DATA_DIR / "imgs"
     DATABASE_PATH: Path = DATA_DIR / "db" / "data.db"
     __prefix: str = "sqlite:///" if sys.platform.startswith("win") else "sqlite:////"
-    SQLALCHEMY_DATABASE_URI: str = f"{__prefix}{DATABASE_PATH}"
+    SQLALCHEMY_DATABASE_URI: str = f"{__prefix}{DATABASE_PATH}?check_same_thread=False"
 
 
 class ProductionConfig(Config):
