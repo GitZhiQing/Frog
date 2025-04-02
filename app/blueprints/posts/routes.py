@@ -1,5 +1,5 @@
 import io
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 import frontmatter
 from flask import abort, current_app, render_template, request, send_file
@@ -31,5 +31,6 @@ def get_post(title: str):
         tags = []
         for tag in post.tags:
             tags.append(tag.name)
-        date = datetime.fromtimestamp(post.created_at).strftime("%Y-%m-%d %H:%M:%S")
-        return render_template("post.html", title=title, category=category, tags=tags, date=date)
+        dt_shanghai = datetime.fromtimestamp(post.created_at, tz=UTC) + timedelta(hours=8)
+        dt_shanghai_str = dt_shanghai.strftime("%Y-%m-%d %H:%M:%S")
+        return render_template("post.html", title=title, category=category, tags=tags, date=dt_shanghai_str)

@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 from flask import render_template, request
 from sqlalchemy import select
@@ -34,19 +34,21 @@ def status():
         # 默认只取最新一条
         latest_post = posts[0] if posts else None
         post_title = latest_post.title
-        date = datetime.fromtimestamp(latest_post.created_at).strftime("%Y-%m-%d %H:%M:%S")
-        return render_template("status.html", title="当前状态", post_title=post_title, date=date)
+        dt_shanghai = datetime.fromtimestamp(latest_post.created_at, tz=UTC) + timedelta(hours=8)
+        dt_shanghai_str = dt_shanghai.strftime("%Y-%m-%d %H:%M:%S")
+        return render_template("status.html", title="当前状态", post_title=post_title, date=dt_shanghai_str)
 
     # 历史模式：按年份分组
     grouped_posts = {}
     for post in posts:
-        year = time.strftime("%Y", time.localtime(post.created_at))
+        dt_shanghai = datetime.fromtimestamp(post.created_at, tz=UTC) + timedelta(hours=8)
+        year = dt_shanghai.strftime("%Y")
         if year not in grouped_posts:
             grouped_posts[year] = []
         grouped_posts[year].append(
             {
                 "title": post.title,
-                "date": datetime.fromtimestamp(post.created_at).strftime("%m/%d"),
+                "date": dt_shanghai.strftime("%m/%d"),
                 "created_at": post.created_at,
             }
         )
@@ -81,13 +83,14 @@ def archive():
     )
     grouped_posts = {}
     for post in posts:
-        year = datetime.fromtimestamp(post.created_at).strftime("%Y")
+        dt_shanghai = datetime.fromtimestamp(post.created_at, tz=UTC) + timedelta(hours=8)
+        year = dt_shanghai.strftime("%Y")
         if year not in grouped_posts:
             grouped_posts[year] = []
         grouped_posts[year].append(
             {
                 "title": post.title,
-                "date": datetime.fromtimestamp(post.created_at).strftime("%m/%d"),
+                "date": dt_shanghai.strftime("%m/%d"),
                 "created_at": post.created_at,
             }
         )
