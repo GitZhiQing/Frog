@@ -78,6 +78,12 @@ a:visited {
     border-bottom: 1px solid var(--color-text);
 }
 
+/* main */
+
+main {
+    padding: 1rem 0 0.2rem 0;
+}
+
 /* header */
 header {
     display: flex;
