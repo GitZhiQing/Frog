@@ -58,9 +58,25 @@
     {% for message in get_flashed_messages() %}
       <div class="flash">{{ message }}</div>
     {% endfor %}
-    <button class="theme-toggle" aria-label="切换主题">
-      <span class="toggle-icon">🌓</span>
-    </button>
+    <div class="menu-container">
+      <button class="menu-button" aria-label="菜单">
+        <svg class="menu-icon" viewBox="0 -960 960 960">
+          <path
+            d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"
+          />
+        </svg>
+      </button>
+
+      <ul class="menu-list">
+        <li class="menu-item">
+          <!--主题切换开关-->
+          <label class="switch">
+            <input type="checkbox" />
+            <div class="slider"></div>
+          </label>
+        </li>
+      </ul>
+    </div>
     <div class="container">
       <header>
         <img class="header-avatar" src="{{ BLOG_AVATAR }}" />
@@ -112,53 +128,133 @@
       </footer>
     </div>
     <script>
-      const themeToggle = document.querySelector(".theme-toggle");
-      const toggleIcon = document.querySelector(".toggle-icon");
-      const html = document.documentElement;
+      (() => {
+        // 通用DOM缓存
+        const domCache = {
+          html: document.documentElement,
+          themeToggle: document.querySelector(".switch input"),
+          menuButton: document.querySelector(".menu-button"),
+          menuList: document.querySelector(".menu-list"),
+          uvCounter: document.getElementById("uv-counter"),
+        };
 
-      // 更新主题状态
-      const updateTheme = (isDark) => {
-        const theme = isDark ? "dark" : "light";
-        html.dataset.theme = theme;
-        toggleIcon.textContent = isDark ? "🌙" : "☀️";
-        localStorage.setItem("theme", theme);
+        // 主题管理模块
+        const themeManager = (() => {
+          const COLOR_SCHEME_QUERY = "(prefers-color-scheme: dark)";
+          let systemColorSchemeListener = null;
 
-        // 切换 highlight 样式表
-        document.getElementById("highlight-light").disabled = theme !== "light";
-        document.getElementById("highlight-dark").disabled = theme !== "dark";
-      };
+          const getSystemTheme = () =>
+            window.matchMedia(COLOR_SCHEME_QUERY).matches ? "dark" : "light";
 
-      // 切换主题
-      themeToggle.addEventListener("click", () => {
-        const isDark = html.dataset.theme === "dark";
-        updateTheme(!isDark);
-      });
+          const applyTheme = (theme, updateStorage = true) => {
+            domCache.html.dataset.theme = theme;
+            if (domCache.themeToggle) {
+              domCache.themeToggle.checked = theme === "dark";
+            }
+            if (updateStorage) localStorage.setItem("theme", theme);
+          };
 
-      // 监听系统主题变化
-      const colorSchemeQuery = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      );
-      colorSchemeQuery.addEventListener("change", (e) => {
-        if (!localStorage.getItem("theme")) {
-          updateTheme(e.matches);
-        }
-      });
+          const initTheme = () => {
+            const savedTheme = localStorage.getItem("theme");
+            applyTheme(savedTheme || getSystemTheme(), false);
+          };
 
-      function refreshUV() {
-        fetch("{{ url_for('manage.total_uv') }}")
-          .then((response) => {
-            if (!response.ok) throw new Error("网络响应异常");
-            return response.json();
-          })
-          .then((data) => {
-            document.getElementById("uv-counter").textContent = data.count;
-          })
-          .catch((error) => {
-            console.error("请求失败:", error);
-            document.getElementById("uv-counter").textContent = "更新失败";
-          });
-      }
-      refreshUV();
+          const handleSystemThemeChange = (e) => {
+            if (!localStorage.getItem("theme")) {
+              applyTheme(e.matches ? "dark" : "light");
+            }
+          };
+
+          const bindThemeEvents = () => {
+            if (domCache.themeToggle) {
+              domCache.themeToggle.addEventListener("change", (e) => {
+                applyTheme(e.target.checked ? "dark" : "light");
+              });
+            }
+
+            systemColorSchemeListener = window.matchMedia(COLOR_SCHEME_QUERY);
+            systemColorSchemeListener.addEventListener(
+              "change",
+              handleSystemThemeChange,
+            );
+          };
+
+          const cleanup = () => {
+            if (systemColorSchemeListener) {
+              systemColorSchemeListener.removeEventListener(
+                "change",
+                handleSystemThemeChange,
+              );
+            }
+          };
+
+          return { initTheme, bindThemeEvents, cleanup };
+        })();
+
+        // 菜单管理模块
+        const menuManager = (() => {
+          const closeMenu = () => domCache.menuList?.classList.remove("active");
+          const toggleMenu = () =>
+            domCache.menuList?.classList.toggle("active");
+
+          const handleDocumentClick = (e) => {
+            if (
+              !e.target.closest(".menu-container") &&
+              domCache.menuList?.classList.contains("active")
+            ) {
+              closeMenu();
+            }
+          };
+
+          const bindMenuEvents = () => {
+            if (domCache.menuButton) {
+              domCache.menuButton.addEventListener("click", (e) => {
+                e.stopPropagation();
+                toggleMenu();
+              });
+            }
+            document.addEventListener("click", handleDocumentClick);
+          };
+
+          const cleanup = () => {
+            document.removeEventListener("click", handleDocumentClick);
+          };
+
+          return { bindMenuEvents, cleanup };
+        })();
+
+        // UV统计模块
+        const uvManager = (() => {
+          const fetchUV = async () => {
+            try {
+              const response = await fetch("{{ url_for('manage.total_uv') }}");
+              if (!response.ok)
+                throw new Error(`HTTP error! status: ${response.status}`);
+              const data = await response.json();
+              if (domCache.uvCounter)
+                domCache.uvCounter.textContent = data.count;
+            } catch (error) {
+              console.error("UV请求失败:", error);
+              if (domCache.uvCounter)
+                domCache.uvCounter.textContent = "更新失败";
+            }
+          };
+
+          return { fetchUV };
+        })();
+
+        // 初始化执行
+        themeManager.initTheme(); // 初始化主题
+        themeManager.bindThemeEvents(); // 绑定主题相关事件
+        menuManager.bindMenuEvents(); // 绑定菜单相关事件
+        uvManager.fetchUV(); // 获取 UV
+
+        // 清理事件监听
+        window.addEventListener("beforeunload", () => {
+          themeManager.cleanup();
+          menuManager.cleanup();
+        });
+      })();
     </script>
     {% block scripts %}
     {% endblock %}

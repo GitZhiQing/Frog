@@ -6,6 +6,8 @@
     --color-text-secondary: #616161;
     --color-border: #c3c3c3;
     --color-primary: #005fb8;
+    --color-star: #fdf0a0;
+    --color-sky: #3c9dff;
 }
 
 [data-theme="dark"] {
@@ -16,4 +18,6 @@
     --color-text-secondary: #868686;
     --color-border: #454545;
     --color-primary: #0078d4;
+    --color-star: #ced2d8;
+    --color-sky: #0d1231;
 }
