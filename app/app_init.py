@@ -36,12 +36,9 @@ def inject_vars() -> dict:
     """注入一些博客元信息"""
     now = datetime.now()
     env_vars = {
-        "BLOG_NAME": current_app.config.get("BLOG_NAME", "Frog"),
-        "BLOG_INTRO": current_app.config.get("BLOG_INTRO", "Gua Gua Gua"),
-        "BLOG_AVATAR": current_app.config.get(
-            "BLOG_AVATAR",
-            url_for("static", filename="favicon.svg"),
-        ),
+        "BLOG_NAME": current_app.config.get("BLOG_NAME") or "Frog",
+        "BLOG_INTRO": current_app.config.get("BLOG_INTRO") or "Gua Gua Gua",
+        "BLOG_AVATAR": current_app.config.get("BLOG_AVATAR") or url_for("static", filename="favicon.svg"),
         "NOW": {
             "year": now.year,
             "month": now.month,
