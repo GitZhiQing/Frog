@@ -21,6 +21,8 @@ body {
     transition:
         background-color 0.3s,
         color 0.3s;
+    /* 解决滚动条造成的页面抖动问题 */
+    padding-left: calc(100vw - 100%);
 }
 
 .flash {
