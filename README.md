@@ -33,6 +33,7 @@ flask run # 启动开发服务器
 - [ ] 评论
 - [ ] 搜索
 - [ ] RSS
+- [ ] 文章数据分离到单独的数据库（基于 Flask-SQLAlchemy binds）
 
 ## 参考
 
