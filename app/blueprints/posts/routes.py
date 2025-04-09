@@ -2,15 +2,17 @@ import io
 from datetime import UTC, datetime, timedelta
 
 import frontmatter
-from flask import abort, current_app, render_template, request, send_file
+from flask import abort, current_app, flash, redirect, render_template, request, send_file
+from loguru import logger
 from sqlalchemy import select
 
 from app.blueprints.posts import posts_bp
 from app.extensions import db
-from app.models import Post
+from app.forms import CommentForm
+from app.models import Comment, Post
 
 
-@posts_bp.route("/<string:title>")
+@posts_bp.route("/<string:title>", methods=["GET", "POST"])
 def get_post(title: str):
     """获取文章"""
     action = request.args.get("action", "raw")  # raw | read
@@ -27,10 +29,40 @@ def get_post(title: str):
             post_content = frontmatter.load(f)
         return send_file(io.BytesIO(post_content.content.encode()), mimetype="text/markdown")
     else:
+        form = CommentForm()
         category = post.category.name
         tags = []
         for tag in post.tags:
             tags.append(tag.name)
         dt_shanghai = datetime.fromtimestamp(post.created_at, tz=UTC) + timedelta(hours=8)
         dt_shanghai_str = dt_shanghai.strftime("%Y-%m-%d %H:%M:%S")
-        return render_template("post.html", title=title, category=category, tags=tags, date=dt_shanghai_str)
+
+        if form.validate_on_submit():
+            try:
+                comment = Comment(
+                    post_path=post.relative_path,
+                    name=form.name.data,
+                    email=form.email.data,
+                    link=form.link.data,
+                    content=form.content.data,
+                    parent_id=int(form.parent_id.data) if form.parent_id.data else None,
+                )
+                db.session.add(comment)
+                db.session.commit()
+                logger.info(f"{comment.name} 评论了 {post.title}")
+                return redirect(f"{request.url}#comment-{comment.cid}")
+            except Exception as e:
+                logger.error(f"评论失败: {e}")
+                flash("评论失败!")
+                return redirect(request.referrer)
+        comments = db.session.execute(select(Comment).where(Comment.post_path == post.relative_path)).scalars().all()
+        logger.info(f"comments: {comments}")
+        return render_template(
+            "post.html",
+            title=title,
+            category=category,
+            tags=tags,
+            date=dt_shanghai_str,
+            form=form,
+            comments=comments,
+        )

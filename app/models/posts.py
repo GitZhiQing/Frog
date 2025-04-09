@@ -14,3 +14,4 @@ class Post(db.Model, TimestampMixin):
 
     category = relationship("Category", back_populates="posts")
     tags = relationship("Tag", secondary="posts_tags", back_populates="posts")
+    comments = relationship("Comment", back_populates="post")
