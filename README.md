@@ -1,7 +1,5 @@
 # Frog
 
-![FROG](./images/frog.png)
-
 一个基于 Flask 的，简洁的个人博客。在文本编辑器编写 Markdown 文档，Frog 会自动解析目录结构和 Markdown 文档生成博客页面。
 
 > [!WARNING]
