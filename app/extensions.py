@@ -6,4 +6,4 @@ class Base(DeclarativeBase):
     pass
 
 
-db: SQLAlchemy = SQLAlchemy(model_class=Base)
+db = SQLAlchemy(model_class=Base)  # noqa: F811

@@ -52,9 +52,9 @@
     <div class="current-status">
       <div id="md-container" class="markdown-body"></div>
       <div class="metadata">
-        {% if date %}
+        {% if post %}
           <div class="metadata-right">
-            <span class="metadata-date">{{ date }}</span>
+            <span class="metadata-date">{{ post.created_at | ts2date }}</span>
           </div>
         {% endif %}
       </div>
@@ -161,7 +161,7 @@
           const processor = new MarkdownProcessor();
           try {
             const response = await fetch(
-              "{{ url_for('posts.get_post', title=post_title) }}",
+              "{{ url_for('posts.get_post', title=post.title) }}",
             );
             if (!response.ok) throw new Error(`加载失败: ${response.status}`);
             const content = await response.text();

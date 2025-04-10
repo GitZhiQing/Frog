@@ -10,7 +10,7 @@ class Comment(db.Model, TimestampMixin):
     cid: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(20))
     email: Mapped[str] = mapped_column(String(128))
-    link: Mapped[str] = mapped_column(String(64))
+    link: Mapped[str] = mapped_column(String(128))
     content: Mapped[str] = mapped_column(Text)
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("comments.cid"), nullable=True)  # 自关联回复
     post_path: Mapped[str] = mapped_column(String(256), ForeignKey("posts.relative_path"))  # 关联文章路径

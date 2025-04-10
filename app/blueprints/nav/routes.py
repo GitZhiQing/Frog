@@ -1,11 +1,13 @@
 from datetime import UTC, datetime, timedelta
 
-from flask import render_template, request
+from flask import flash, redirect, render_template, request
+from loguru import logger
 from sqlalchemy import select
-
+from sqlalchemy.exc import SQLAlchemyError
 from app.blueprints.nav import nav_bp
 from app.extensions import db
-from app.models import Post
+from app.forms import CommentForm
+from app.models import Post, Comment
 
 
 @nav_bp.route("/")
@@ -14,9 +16,33 @@ def index():
     return render_template("post.html", title="首页")
 
 
-@nav_bp.route("/about")
+@nav_bp.route("/about", methods=["GET", "POST"])
 def about():
-    return render_template("post.html", title="关于")
+    form = CommentForm()
+    # 处理POST请求
+    if form.validate_on_submit():
+        try:
+            comment = Comment(
+                post_path="关于.md",
+                name=form.name.data,
+                email=form.email.data,
+                link=form.link.data,
+                content=form.content.data,
+                parent_id=int(form.parent_id.data) if form.parent_id.data else None,
+            )
+            db.session.add(comment)
+            db.session.commit()
+            flash("评论提交成功！", "success")
+            return redirect(f"{request.url}#comment-{comment.cid}")
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            logger.error(f"评论提交失败: {str(e)}")
+            flash("评论提交失败，请稍后再试", "danger")
+        except ValueError:
+            logger.error(f"非法父评论ID: {form.parent_id.data}")
+            flash("非法评论参数", "danger")
+    comments = db.session.execute(select(Comment).where(Comment.post_path == "关于.md")).scalars().all()
+    return render_template("post.html", title="关于", form=form, comments=comments)
 
 
 @nav_bp.route("/status")
@@ -32,10 +58,7 @@ def status():
     if not show_all:
         # 默认只取最新一条
         latest_post = posts[0] if posts else None
-        post_title = latest_post.title
-        dt_shanghai = datetime.fromtimestamp(latest_post.created_at, tz=UTC) + timedelta(hours=8)
-        dt_shanghai_str = dt_shanghai.strftime("%Y-%m-%d %H:%M:%S")
-        return render_template("status.html", title="当前状态", post_title=post_title, date=dt_shanghai_str)
+        return render_template("status.html", title="当前状态", post=latest_post)
 
     # 历史模式：按年份分组
     grouped_posts = {}

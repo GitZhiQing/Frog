@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block subtitle %}{{ title }}{% endblock %}
+{% set fetch_url = url_for('posts.get_post', title=post.title if post else title) %}
 {% block links %}
   <script src="https://cdnjs.cloudflare.com/ajax/libs/remarkable/1.7.4/remarkable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.0/highlight.min.js"></script>
@@ -17,269 +18,40 @@
 
 {% block content %}
   <div id="md-container" class="markdown-body"></div>
+
+  <p class="post-end">全文完</p>
+
   <div class="metadata">
     <div class="metadata-left">
-      {% if category %}
+      {% if post %}
         <span class="metadata-item">
           分类:
-          <a href="{{ url_for('nav.archive', category=category) }}"
-            >{{ category }}</a
-          >
+          <span class="category">
+            <a href="{{ url_for('nav.archive', category=post.category.name) }}"
+              >{{ post.category.name }}</a
+            >
+          </span>
         </span>
-      {% endif %}
-      {% if tags %}
         <span class="metadata-item">
           标签:
-          {% for tag in tags %}
+          {% for tag in post.tags %}
             <span class="tag">
-              <a href="{{ url_for('nav.archive', tag=tag) }}"
-                >{{ tag }}</a
+              <a href="{{ url_for('nav.archive', tag=tag.name) }}"
+                >{{ tag.name }}</a
               ></span
             >
           {% endfor %}
         </span>
+        <div class="metadata-right">
+          <span class="metadata-date"
+            >写作于 {{ post.created_at|ts2date }}</span
+          >
+        </div>
       {% endif %}
     </div>
-    {% if date %}
-      <div class="metadata-right">
-        <span class="metadata-date">写作于 {{ date }}</span>
-      </div>
-    {% endif %}
   </div>
-
   {% if form %}
-    <style>
-      a {
-        border: none;
-      }
-      /* 基础样式 */
-      .comment-form {
-        max-width: 100%;
-        margin: 2rem auto;
-        padding: 1.5rem;
-        border: 1px solid var(--color-border);
-        border-radius: 4px;
-        color: var(--color-text);
-      }
-      .form-section {
-        margin-bottom: 1.5rem;
-      }
-      .form-title {
-        margin: 0 0 1.5rem;
-        font-size: 1.5rem;
-        border-bottom: 2px solid var(--color-border);
-        padding-bottom: 0.5rem;
-      }
-
-      /* 表单组 */
-      .form-group {
-        margin-bottom: 1rem;
-      }
-      .form-label {
-        display: block;
-        margin-bottom: 0.2rem;
-        font-weight: 400;
-        font-size: 0.875rem;
-        color: var(--color-text);
-      }
-
-      /* 输入字段 */
-      .form-input {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid var(--color-border);
-        border-radius: 6px;
-        font-size: 1rem;
-        outline: none;
-        background-color: var(--color-bg-body);
-        color: var(--color-text);
-      }
-      .form-input:focus {
-        border: 1px solid var(--color-primary);
-        outline: none;
-      }
-      .textarea {
-        resize: vertical;
-        min-height: 100px;
-      }
-
-      /* 错误状态 */
-      .error-field {
-        border-color: #e74c3c !important;
-      }
-      .error-message {
-        color: #e74c3c;
-        font-size: 0.875rem;
-        margin-top: 0.5rem;
-        display: none;
-      }
-      .error-field + .error-message {
-        display: block;
-      }
-
-      /* 提交按钮 */
-      .submit-group {
-        margin-top: 1.5rem;
-      }
-      .submit-btn {
-        width: 100%;
-        padding: 0.5rem;
-        background: var(--color-primary);
-        color: var(--color-text);
-        border: none;
-        border-radius: 4px;
-        font-size: 1.1rem;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-      }
-      .submit-btn:hover {
-        background: var(--color-secondary);
-      }
-      .hidden-field {
-        display: none;
-      }
-      .comments h3 {
-        margin-bottom: 0.5rem;
-        font-size: 1.5rem;
-      }
-      .comment {
-        border-radius: 4px;
-        margin: 1rem 0;
-        padding: 0.5rem 1rem;
-        border: 1px solid var(--color-border);
-      }
-      .comment .quote {
-        background: var(--color-bg-body);
-        padding: 0.5rem;
-        margin: 0.5rem 0;
-        border-left: 3px solid var(--color-border);
-      }
-      .comment .quote .reply-to {
-        font-size: 0.8rem;
-        color: var(--color-text-secondary);
-      }
-      .comment .quote .reply-to a {
-        font-size: 0.8rem;
-        color: var(--color-text-secondary);
-      }
-      .comment .quote .reply-to a:hover {
-        color: var(--color-primary);
-      }
-      .comment .meta {
-        font-size: 0.9em;
-        color: var(--color-text-secondary);
-      }
-      .comment .meta a {
-        color: var(--color-text);
-      }
-      .comment .meta .name {
-        font-weight: bold;
-        font-size: 1rem;
-        color: var(--color-primary);
-      }
-      .comment .meta a:hover {
-        color: var(--color-primary);
-      }
-    </style>
-    {# 评论表单部分 #}
-    <form method="POST" class="comment-form">
-      {{ form.hidden_tag() }}
-      {{ form.parent_id(class="hidden-field") }}
-
-      <div class="form-section">
-        <h3 class="form-title">发表评论</h3>
-        <!-- 名称字段 -->
-        <div class="form-group">
-          {{ form.name.label(class="form-label") }}
-          {{
-            form.name(class="form-input" + (" error-field" if form.name.errors else ""),
-            placeholder="请输入您的姓名")
-          }}
-          {% for error in form.name.errors %}
-            <div class="error-message">{{ error }}</div>
-          {% endfor %}
-        </div>
-
-        <!-- 邮箱字段 -->
-        <div class="form-group">
-          {{ form.email.label(class="form-label") }}
-          {{
-            form.email(class="form-input" + (" error-field" if form.email.errors else ""),
-            placeholder="example@domain.com")
-          }}
-          {% for error in form.email.errors %}
-            <div class="error-message">{{ error }}</div>
-          {% endfor %}
-        </div>
-
-        <!-- 链接字段 -->
-        <div class="form-group">
-          {{ form.link.label(class="form-label") }}
-          <div class="input-group">
-            {{
-              form.link(class="form-input" + (" error-field" if form.link.errors else ""),
-              placeholder="https://")
-            }}
-          </div>
-          {% for error in form.link.errors %}
-            <div class="error-message">{{ error }}</div>
-          {% endfor %}
-        </div>
-
-        <!-- 内容字段 -->
-        <div class="form-group">
-          {{ form.content.label(class="form-label") }}
-          {{
-            form.content(class="form-input textarea" + (" error-field" if form.content.errors else ""),
-            rows="5", placeholder="请输入您的评论内容...")
-          }}
-          {% for error in form.content.errors %}
-            <div class="error-message">{{ error }}</div>
-          {% endfor %}
-        </div>
-
-        <div class="submit-group">
-          <button type="submit" class="submit-btn">提交评论</button>
-        </div>
-      </div>
-    </form>
-    {# 评论列表部分 #}
-    <div class="comments">
-      <h3 class="comment-title">
-        评论列表 | 共 {{ comments | length }} 条评论
-      </h3>
-      {% for comment in comments %}
-        <div class="comment" id="comment-{{ comment.cid }}">
-          <div class="meta">
-            <a class="name" href="{{ comment.link }}" target="_blank"
-              >{{ comment.name }}</a
-            >&nbsp;于&nbsp;<time>{{ comment.created_at | ts2date }}</time>&nbsp;发布&nbsp;|&nbsp;<a
-              href="#comment-form"
-              onclick="setReply({{ comment.cid }}, '{{ comment.name }}')"
-              >回复</a
-            >
-          </div>
-          <div class="content">{{ comment.content }}</div>
-
-          {# 显示被回复的原始评论 #}
-          {% if comment.parent %}
-            <div class="quote">
-              <span class="reply-to">
-                回复给
-                <a href="#comment-{{ comment.parent.cid }}"
-                  >@{{ comment.parent.name }}</a
-                >:
-              </span>
-              <blockquote>{{ comment.parent.content|truncate(50) }}</blockquote>
-            </div>
-          {% endif %}
-        </div>
-      {% endfor %}
-    </div>
+    {% include "comment.html" %}
   {% endif %}
 {% endblock %}
 {% block scripts %}
@@ -375,15 +147,12 @@
         });
       }
     }
-
     // 定义应用
     class App {
       static async init() {
         const processor = new MarkdownProcessor();
         try {
-          const response = await fetch(
-            "{{ url_for('posts.get_post', title=title) }}",
-          );
+          const response = await fetch("{{fetch_url}}");
           if (!response.ok) throw new Error(`加载失败: ${response.status}`);
           const content = await response.text();
           processor.render(content);
@@ -396,11 +165,5 @@
 
     // 启动应用
     document.addEventListener("DOMContentLoaded", App.init);
-
-    function setReply(parentId, author) {
-      document.querySelector("#parent_id").value = parentId;
-      document.querySelector("#content").focus();
-      document.querySelector("#content").placeholder = `回复 ${author}: `;
-    }
   </script>
 {% endblock %}

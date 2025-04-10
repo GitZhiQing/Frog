@@ -1,0 +1,114 @@
+{# 评论表单 #}
+<form method="POST" class="comment-form" id="comment-form">
+  {{ form.hidden_tag() }}
+  {{ form.parent_id(class="hidden-field") }}
+
+  <div class="form-section">
+    <h3 class="comment-form-title">发表评论</h3>
+
+    <!-- 名称字段 -->
+    <div class="form-group">
+      {{ form.name.label(class="form-label required") }}
+      <div class="input-wrapper">
+        {{
+          form.name(class="form-input" + (" error-field" if form.name.errors else ""),
+            placeholder="请输入您的昵称"
+          )
+        }}
+      </div>
+      {% for error in form.name.errors %}
+        <div class="error-message">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- 邮箱字段 -->
+    <div class="form-group">
+      {{ form.email.label(class="form-label required") }}
+      <div class="input-wrapper">
+        {{
+          form.email(class="form-input" + (" error-field" if form.email.errors else ""),
+          placeholder="example@domain.com")
+        }}
+      </div>
+      {% for error in form.email.errors %}
+        <div class="error-message">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <!-- 链接字段 -->
+    <div class="form-group">
+      {{ form.link.label(class="form-label") }}
+      <div class="input-wrapper">
+        {{
+          form.link(class="form-input" + (" error-field" if form.link.errors else ""),
+          placeholder="https://")
+        }}
+      </div>
+      {% for error in form.link.errors %}
+        <div class="error-message">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <!-- 内容字段 -->
+    <div class="form-group">
+      {{ form.content.label(class="form-label required") }}
+      <div class="input-wrapper">
+        {{
+          form.content(class="form-input textarea" + (" error-field" if form.content.errors else ""),
+          rows="3", placeholder="请输入您的评论内容...")
+        }}
+      </div>
+      {% for error in form.content.errors %}
+        <div class="error-message">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="submit-group">
+      <button type="submit" class="submit-btn">提交评论</button>
+    </div>
+  </div>
+</form>
+
+{# 评论列表 #}
+<div class="comment-list">
+  <h3 class="comment-list-title">评论列表 | 共 {{ comments | length }} 条</h3>
+  {% for comment in comments %}
+    <div class="comment" id="comment-{{ comment.cid }}">
+      <div class="meta">
+        <a class="name" href="{{ comment.link }}" target="_blank"
+          >{{ comment.name }}</a
+        >
+        {% if comment.parent %}
+          {# 被回复的原始作者 #}
+          回复
+          <span class="reply-to">
+            <a href="#comment-{{ comment.parent.cid }}"
+              >@{{ comment.parent.name }}</a
+            >
+          </span>
+        {% endif %}
+        &nbsp;<time>{{ comment.created_at | ts2date }}</time>&nbsp;|&nbsp;<a
+          href="#comment-form"
+          onclick="setReply({{ comment.cid }}, '{{ comment.name }}')"
+          >回复</a
+        >
+      </div>
+      <div class="content">{{ comment.content }}</div>
+
+      {% if comment.parent %}
+        {# 被回复的原始评论 #}
+        <div class="quote">
+          <blockquote>{{ comment.parent.content|truncate(50) }}</blockquote>
+        </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+  <p class="comment-end">没有更多评论了</p>
+</div>
+
+<script>
+  function setReply(parentId, author) {
+    document.querySelector("#parent_id").value = parentId;
+    document.querySelector("#content").placeholder = `回复 ${author}: `;
+    document.querySelector("#content").focus();
+  }
+</script>
