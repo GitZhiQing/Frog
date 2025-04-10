@@ -4,10 +4,11 @@ from flask import flash, redirect, render_template, request
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
+
 from app.blueprints.nav import nav_bp
 from app.extensions import db
 from app.forms import CommentForm
-from app.models import Post, Comment
+from app.models import Comment, Post
 
 
 @nav_bp.route("/")
