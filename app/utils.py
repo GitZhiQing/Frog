@@ -107,10 +107,20 @@ def blog_meta() -> dict:
     return env_vars
 
 
-def db_init():
+def db_init(drop_all: bool = False):
     """数据库初始化"""
     try:
-        db.drop_all()
+        if drop_all:
+            db.drop_all()
+        else:
+            # 需要排除的表名
+            excluded_tables = {"comments", "uv_records"}
+            # 待删除的表对象列表
+            tables_to_drop = [table for table in db.metadata.tables.values() if table.name not in excluded_tables]
+            from app.extensions import Base
+
+            Base.metadata.drop_all(bind=db.engine, tables=tables_to_drop)
+
         db.create_all()
         logger.info("数据库初始化完成!")
     except Exception as e:
