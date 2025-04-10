@@ -20,11 +20,11 @@ flask run # 启动开发服务器
 
 ## 效果
 
-![light-index](./images/light-index.png)
-![light-status](./images/light-status.png)
-![light-archive](./images/light-archive.png)
-![light-post](./images/light-post.png)
-![dark-index](./images/dark-index.png)
+![light-index](./images/index-light.png)
+![dark-index](./images/index-dark.png)
+![light-archive](./images/archive-light.png)
+![light-read](./images/read-light.png)
+![light-comment](./images/comment-light.png)
 
 ## 待办
 
