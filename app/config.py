@@ -16,7 +16,8 @@ class Config:
     FLASK_DEBUG: bool = False
 
     # 数据
-    DATA_DIR: Path = Path(__file__).parent.parent / "data"
+    PROJECT_DIR: Path = Path(__file__).parent.parent
+    DATA_DIR: Path = PROJECT_DIR / "data"
     POST_DIR: Path = DATA_DIR / "posts"
     POST_IMGS_DIR: Path = DATA_DIR / "imgs"
     DATABASE_PATH: Path = DATA_DIR / "db" / "data.db"

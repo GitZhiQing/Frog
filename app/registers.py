@@ -14,9 +14,10 @@ def register_image_routes(app: Flask) -> None:
 
 def register_commands(app: Flask) -> None:
     """注册应用命令行"""
-    from app.commands import init
+    from app.commands import compose, init
 
     app.cli.add_command(init)
+    app.cli.add_command(compose)
 
 
 def register_extensions(app: Flask) -> None:
