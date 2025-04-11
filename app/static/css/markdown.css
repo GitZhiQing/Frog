@@ -197,6 +197,12 @@
     box-sizing: content-box;
 }
 
+.markdown-body .img-caption {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+}
+
 .markdown-body code,
 .markdown-body kbd,
 .markdown-body pre,
