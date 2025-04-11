@@ -99,6 +99,7 @@
           hljs.highlightAll();
           this.processCodeBlocks();
           this.renderMath();
+          this.processImgCaption();
         }
 
         processCodeBlocks() {
@@ -110,6 +111,19 @@
               this.createLanguageTag(lang),
               this.createCopyButton(codeBlock),
             );
+          });
+        }
+
+        processImgCaption() {
+          const images = document.querySelectorAll(".markdown-body img");
+          images.forEach((img) => {
+            const altText = img.getAttribute("alt");
+            if (altText) {
+              const caption = document.createElement("p");
+              caption.classList.add("img-caption");
+              caption.textContent = altText;
+              img.parentNode.insertBefore(caption, img.nextSibling);
+            }
           });
         }
 
