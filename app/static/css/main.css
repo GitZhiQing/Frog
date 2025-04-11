@@ -373,7 +373,7 @@ input:checked+.slider:before {
 
 .textarea {
     resize: vertical;
-    min-height: 5rem;
+    min-height: 5.5rem;
 }
 
 /* 错误状态 */
@@ -419,57 +419,53 @@ input:checked+.slider:before {
     background: var(--color-secondary);
 }
 
-/* 响应式优化 */
-@media (max-width: 640px) {
-    .comment-form {
-        padding: 1.5rem;
-        margin: 1rem;
-    }
-
-    .form-input {
-        padding: 0.65rem 2rem 0.65rem 1rem;
-    }
-}
-
 /*** 评论列表 ***/
 .comment-list-title {
     margin-bottom: 0;
 }
 
 .comment {
-    padding: 0.875rem 0;
+    padding: 0.5rem 0;
     border-bottom: 1px solid var(--color-border);
 }
 
-.comment .meta {
+.comment a {
+    border: none;
+}
+
+.comment .comment-header .name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.comment .comment-header .name:hover {
+    color: var(--color-primary);
+}
+
+.comment .reply-to a {
+    color: var(--color-primary);
+}
+
+.comment .comment-header .reply-to a:hover {
+    border-bottom: 1px solid var(--color-primary);
+}
+
+.comment .comment-meta {
     font-size: 0.875em;
     color: var(--color-text-secondary);
 }
 
-.comment .meta a {
-    border: none;
-    color: var(--color-text-secondary);
+.comment .comment-meta a {
+    color: var(--color-text);
 }
 
-.comment .meta a:hover {
+.comment .comment-meta a:hover {
     color: var(--color-primary);
-}
-
-.comment .meta .name {
-    font-weight: 600;
-}
-
-.comment .meta .reply-to a {
-    color: var(--color-primary);
-}
-
-.comment .meta .reply-to a:hover {
-    border-bottom: 1px solid var(--color-primary);
 }
 
 .comment .content {
     color: var(--color-text);
-    padding: 0.25rem 0 0 0;
 }
 
 .comment .quote {

@@ -54,7 +54,7 @@
       <div class="input-wrapper">
         {{
           form.content(class="form-input textarea" + (" error-field" if form.content.errors else ""),
-          rows="3", placeholder="请输入您的评论内容...")
+          rows="2", placeholder="请输入您的评论内容...")
         }}
       </div>
       {% for error in form.content.errors %}
@@ -73,26 +73,23 @@
   <h3 class="comment-list-title">评论列表 | 共 {{ comments | length }} 条</h3>
   {% for comment in comments %}
     <div class="comment" id="comment-{{ comment.cid }}">
-      <div class="meta">
+      <div class="comment-header">
         <a class="name" href="{{ comment.link }}" target="_blank"
           >{{ comment.name }}</a
         >
+      </div>
+      <div class="content">
         {% if comment.parent %}
           {# 被回复的原始作者 #}
-          回复
-          <span class="reply-to">
-            <a href="#comment-{{ comment.parent.cid }}"
-              >@{{ comment.parent.name }}</a
-            >
+          <span class="reply"
+            >回复<span class="reply-to">
+              <a href="#comment-{{ comment.parent.cid }}"
+                >@{{ comment.parent.name }}</a
+              >:
+            </span>
           </span>
-        {% endif %}
-        &nbsp;<time>{{ comment.created_at | ts2date }}</time>&nbsp;|&nbsp;<a
-          href="#comment-form"
-          onclick="setReply({{ comment.cid }}, '{{ comment.name }}')"
-          >回复</a
-        >
+        {% endif %}{{ comment.content }}
       </div>
-      <div class="content">{{ comment.content }}</div>
 
       {% if comment.parent %}
         {# 被回复的原始评论 #}
@@ -100,6 +97,13 @@
           <blockquote>{{ comment.parent.content|truncate(50) }}</blockquote>
         </div>
       {% endif %}
+      <div class="comment-meta">
+        <time>{{ comment.created_at | ts2date }}</time>&nbsp;|&nbsp;<a
+          href="#comment-form"
+          onclick="setReply({{ comment.cid }}, '{{ comment.name }}')"
+          >回复</a
+        >
+      </div>
     </div>
   {% endfor %}
   <p class="comment-end">没有更多评论了</p>
