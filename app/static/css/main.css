@@ -79,6 +79,7 @@ body {
     border-radius: 3px;
     background: var(--color-bg-container);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: .4s ease-in-out;
 }
 
 /* 覆盖 a 标签样式 */
@@ -191,6 +192,8 @@ footer {
     position: fixed;
     top: 0;
     left: 0;
+    z-index: 1000;
+    transition: .4s ease-in-out;
 }
 
 .menu-button {
@@ -481,4 +484,55 @@ input:checked+.slider:before {
     color: var(--color-text-secondary);
     margin: 1rem 0;
     font-size: 0.875rem;
+}
+
+/* 屏幕宽度小于  768px 时 */
+@media screen and (max-width: 768px) {
+    html {
+        font-size: 15px;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 1rem auto;
+        padding: 1rem;
+        border-radius: 3px;
+        background: var(--color-bg-container);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu-container {
+        position: fixed;
+        top: 0;
+        left: 85%;
+        z-index: 1000;
+    }
+
+    .menu-button {
+        margin: 1.2rem 1rem 0 0;
+        padding: 0.5rem;
+        background: var(--color-bg-container);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .menu-list {
+        position: absolute;
+        top: 100%;
+        left: -110px;
+        margin: 0.5rem 1rem 0 0;
+        padding: 0;
+        list-style: none;
+        background-color: var(--color-bg-container);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: none;
+        min-width: 150px;
+    }
 }
