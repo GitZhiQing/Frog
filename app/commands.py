@@ -3,6 +3,7 @@ import subprocess
 import click
 from flask import current_app
 from flask.cli import with_appcontext
+from loguru import logger
 
 from app.utils import db_init
 
@@ -19,7 +20,7 @@ def init(drop_all: bool = False) -> None:
 def compose() -> None:
     project_dir = current_app.config.get("PROJECT_DIR")
     if not project_dir:
-        click.echo("PROJECT_DIR 未配置，请检查配置文件。")
+        logger.warning("PROJECT_DIR 未配置，请检查配置文件。")
         return
 
     try:
@@ -27,6 +28,6 @@ def compose() -> None:
         subprocess.run(["docker", "compose", "build"], cwd=project_dir, check=True)
         # 执行 docker compose up -d
         subprocess.run(["docker", "compose", "up", "-d"], cwd=project_dir, check=True)
-        click.echo("Docker Compose 命令执行成功。")
+        logger.success("Docker Compose 命令执行成功。")
     except subprocess.CalledProcessError as e:
-        click.echo(f"执行 Docker Compose 命令时出错: {e}")
+        logger.error(f"执行 Docker Compose 命令时出错: {e}")
