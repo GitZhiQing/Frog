@@ -51,6 +51,11 @@
     {# 默认模式：显示当前状态 #}
     <div class="current-status">
       <div id="md-container" class="markdown-body"></div>
+      <!--图片模态框-->
+      <div id="imageModal" class="modal">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage" />
+      </div>
       <div class="metadata">
         {% if post %}
           <div class="metadata-right">
@@ -99,7 +104,7 @@
           hljs.highlightAll();
           this.processCodeBlocks();
           this.renderMath();
-          this.processImgCaption();
+          this.processImage();
         }
 
         processCodeBlocks() {
@@ -114,7 +119,7 @@
           });
         }
 
-        processImgCaption() {
+        processImage() {
           const images = document.querySelectorAll(".markdown-body img");
           images.forEach((img) => {
             const altText = img.getAttribute("alt");
@@ -123,6 +128,26 @@
               caption.classList.add("img-caption");
               caption.textContent = altText;
               img.parentNode.insertBefore(caption, img.nextSibling);
+            }
+          });
+          const modal = document.getElementById("imageModal");
+          const modalImg = document.getElementById("modalImage");
+          const closeBtn = document.querySelector(".close");
+          // 为每个图片添加点击事件
+          images.forEach((img) => {
+            img.addEventListener("click", function () {
+              modal.style.display = "block";
+              modalImg.src = this.src;
+            });
+          });
+          // 点击关闭按钮时隐藏模态框
+          closeBtn.addEventListener("click", function () {
+            modal.style.display = "none";
+          });
+          // 点击模态框外部时隐藏模态框
+          modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+              modal.style.display = "none";
             }
           });
         }

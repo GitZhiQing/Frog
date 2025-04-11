@@ -2,14 +2,14 @@
 
 /* dark */
 .markdown-body {
-    color-scheme: dark;
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
-    color: var(--color-text);
-    background-color: var(--color-bg-container);
     font-size: 16px;
     line-height: 1.5;
     word-wrap: break-word;
+    color: var(--color-text);
+    background-color: var(--color-bg-container);
+    transition: .4s ease-in-out;
 }
 
 @media screen and (max-width: 768px) {
@@ -143,11 +143,11 @@
     display: none !important;
 }
 
-.markdown-body a {
+/*.markdown-body a {
     background-color: transparent;
     color: var(--color-primary);
     text-decoration: none;
-}
+}*/
 
 .markdown-body abbr[title] {
     border-bottom: none;
@@ -201,6 +201,9 @@
     border-style: none;
     max-width: 100%;
     box-sizing: content-box;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
 }
 
 .markdown-body .img-caption {
