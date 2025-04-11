@@ -55,8 +55,8 @@
     {% endblock %}
   </head>
   <body>
-    {% for message in get_flashed_messages() %}
-      <div class="flash">{{ message }}</div>
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <div class="flash {{ category }}">{{ message }}</div>
     {% endfor %}
     <div class="menu-container">
       <button class="menu-button" aria-label="菜单">
@@ -243,11 +243,25 @@
           return { fetchUV };
         })();
 
+        // Flash 消息管理模块
+        const flashManager = (() => {
+          const initFlash = () => {
+            const flashMessages = document.querySelectorAll(".flash");
+            flashMessages.forEach((flash) => {
+              setTimeout(() => flash.classList.add("show"), 100);
+              setTimeout(() => flash.classList.remove("show"), 3100);
+            });
+          };
+
+          return { initFlash };
+        })();
+
         // 初始化执行
         themeManager.initTheme(); // 初始化主题
         themeManager.bindThemeEvents(); // 绑定主题相关事件
         menuManager.bindMenuEvents(); // 绑定菜单相关事件
         uvManager.fetchUV(); // 获取 UV
+        flashManager.initFlash(); // 初始化 Flash 消息
 
         // 清理事件监听
         window.addEventListener("beforeunload", () => {
