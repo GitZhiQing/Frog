@@ -6,3 +6,21 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/app/data
+    environment:
+      - BLOG_NAME=Pure Blog
+      - BLOG_INTRO=但从心宽，莫向外求。
+      - SECRET_KEY=<your_blog_secret_key>
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7.4.2-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis/data:/data
+    environment:
+      - REDIS_PASSWORD=<your_blog_password>
+    command: redis-server /usr/local/etc/redis/redis.conf
