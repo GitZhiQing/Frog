@@ -11,7 +11,7 @@ from app.forms import CommentForm
 from app.models import Comment, Post
 
 
-def handle_raw_action(post: Post):
+def handle_raw_action(post: Post, _):
     """处理原始文件请求"""
     try:
         if post.category.name == "root":
@@ -28,7 +28,7 @@ def handle_raw_action(post: Post):
         abort(500)
 
 
-def handle_read_action(post: Post):
+def handle_read_action(post: Post, request_path):
     """处理阅读页面请求"""
     form = CommentForm()
 
@@ -37,6 +37,7 @@ def handle_read_action(post: Post):
         try:
             comment = Comment(
                 post=post,  # 直接关联Post对象
+                post_title=post.title,
                 name=form.name.data,
                 email=form.email.data,
                 link=form.link.data,
@@ -45,6 +46,11 @@ def handle_read_action(post: Post):
             )
             db.session.add(comment)
             db.session.commit()
+
+            from app.tasks import send_comment_notification
+
+            result = send_comment_notification.delay(comment.to_dict(), request_path)
+            logger.info(f"创建邮件发送任务: {result.id}")
             flash("评论提交成功！", "success")
             return redirect(f"{request.url}#comment-{comment.cid}")
         except SQLAlchemyError as e:
@@ -54,6 +60,9 @@ def handle_read_action(post: Post):
         except ValueError:
             logger.error(f"非法父评论ID: {form.parent_id.data}")
             flash("非法评论参数", "danger")
+        except Exception as e:
+            logger.error(f"评论提交错误: {str(e)}")
+            flash("评论提交失败，请稍后再试", "danger")
 
     # 获取关联评论（通过关系属性）
     comments = db.session.execute(select(Comment).where(Comment.post_path == post.relative_path)).scalars().all()

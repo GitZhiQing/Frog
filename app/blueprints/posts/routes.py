@@ -25,4 +25,5 @@ def get_post(title: str):
     if not handler:
         abort(404)
 
-    return handler(post)
+    request_path = request.path
+    return handler(post, request_path)

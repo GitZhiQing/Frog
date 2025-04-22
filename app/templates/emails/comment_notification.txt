@@ -1,0 +1,19 @@
+您好，
+
+您的博客文章《{{ comment["post_title"] }}》有新的评论：
+
+------------------------------------------
+昵称: {{ comment["name"] }}
+邮箱: {{ comment["email"] }}
+{% if comment["link"] %}链接: {{ comment["link"] }}{% endif %}
+时间: {{ comment["created_at"] | ts2date }} Asia/Shanghai
+内容: {{ comment["content"] }}
+------------------------------------------
+
+在博客查看评论: {{ url_for('posts.get_post', title=comment.post_title) | replace("/posts/%E5%85%B3%E4%BA%8E", "/about") }}?action=read#comment-{{ comment['cid'] }}
+
+如果这不是您预期的评论通知，请检查博客设置。
+
+谢谢，
+
+{{ platform }}

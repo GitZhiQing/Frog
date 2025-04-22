@@ -22,9 +22,11 @@ def register_commands(app: Flask) -> None:
 
 def register_extensions(app: Flask) -> None:
     """注册应用扩展"""
-    from app.extensions import db
+    from app.extensions import celery_init_app, db, mail
 
     db.init_app(app)
+    mail.init_app(app)
+    celery_init_app(app)
 
 
 def register_errors(app: Flask) -> None:

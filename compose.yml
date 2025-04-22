@@ -7,20 +7,19 @@ services:
     volumes:
       - ./data:/app/data
     environment:
-      - BLOG_NAME=Pure Blog
-      - BLOG_INTRO=但从心宽，莫向外求。
+      - BLOG_NAME=Frog
+      - BLOG_INTRO=Gua Gua Gua~
       - SECRET_KEY=<your_blog_secret_key>
     depends_on:
       - redis
 
   redis:
     image: redis:7.4.2-alpine
+    container_name: redis
     restart: always
     ports:
       - "6379:6379"
     volumes:
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./redis/data:/data
-    environment:
-      - REDIS_PASSWORD=<your_blog_password>
-    command: redis-server /usr/local/etc/redis/redis.conf
+      - ./data/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./data/redis/data:/data
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass <your_redis_password>

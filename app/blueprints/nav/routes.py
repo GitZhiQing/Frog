@@ -25,6 +25,7 @@ def about():
         try:
             comment = Comment(
                 post_path="关于.md",
+                post_title="关于",
                 name=form.name.data,
                 email=form.email.data,
                 link=form.link.data,
@@ -33,6 +34,11 @@ def about():
             )
             db.session.add(comment)
             db.session.commit()
+
+            from app.tasks import send_comment_notification
+
+            result = send_comment_notification.delay(comment.to_dict(), request_path=request.path)
+            logger.info(f"创建邮件发送任务: {result.id}")
             flash("评论提交成功！", "success")
             return redirect(f"{request.url}#comment-{comment.cid}")
         except SQLAlchemyError as e:
@@ -42,6 +48,9 @@ def about():
         except ValueError:
             logger.error(f"非法父评论ID: {form.parent_id.data}")
             flash("非法评论参数", "danger")
+        except Exception as e:
+            logger.error(f"评论提交错误: {str(e)}")
+            flash("评论提交失败，请稍后再试", "danger")
     comments = db.session.execute(select(Comment).where(Comment.post_path == "关于.md")).scalars().all()
     return render_template("post.html", title="关于", form=form, comments=comments)
 
