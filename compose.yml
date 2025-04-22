@@ -30,4 +30,4 @@ services:
     volumes:
       - ./data/redis/redis.conf:/usr/local/etc/redis/redis.conf
       - ./data/redis/data:/data
-    command: redis-server /usr/local/etc/redis/redis.conf --requirepass df1dd46e24a64792a9043260b6bd81e2
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass <your_redis_password>
