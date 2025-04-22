@@ -1,25 +1,33 @@
 services:
   web:
     build: .
-    image: frog
     ports:
       - "8000:8000"
     volumes:
       - ./data:/app/data
+      - ./.env:/app/.env
     environment:
-      - BLOG_NAME=Frog
-      - BLOG_INTRO=Gua Gua Gua~
-      - SECRET_KEY=<your_blog_secret_key>
+      - FLASK_APP=app
+      - FLASK_ENV=production
     depends_on:
       - redis
-
+      - celery_workder
+  celery_workder:
+    build: .
+    command: celery -A app.make_celery worker -l INFO
+    volumes:
+      - ./data:/app/data
+      - ./.env:/app/.env
+    environment:
+      - FLASK_APP=app
+      - FLASK_ENV=production
+    depends_on:
+      - redis
   redis:
     image: redis:7.4.2-alpine
     container_name: redis
     restart: always
-    ports:
-      - "6379:6379"
     volumes:
       - ./data/redis/redis.conf:/usr/local/etc/redis/redis.conf
       - ./data/redis/data:/data
-    command: redis-server /usr/local/etc/redis/redis.conf --requirepass <your_redis_password>
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass df1dd46e24a64792a9043260b6bd81e2
