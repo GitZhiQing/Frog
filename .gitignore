@@ -18,6 +18,8 @@ tmp/
 # data
 **/db/*
 !**/db/.gitkeep
+**/redis/data/*
+!**/redis/data/.gitkeep
 logs/
 
 # python cache
