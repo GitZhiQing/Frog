@@ -2,7 +2,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import frontmatter
-from flask import current_app
+from flask import current_app, url_for
 from loguru import logger
 from sqlalchemy import select
 
@@ -93,7 +93,7 @@ def blog_meta() -> dict:
     env_vars = {
         "BLOG_NAME": current_app.config.get("BLOG_NAME") or "Frog",
         "BLOG_INTRO": current_app.config.get("BLOG_INTRO") or "Gua Gua Gua",
-        "BLOG_AVATAR": current_app.config.get("BLOG_AVATAR") or "./static/favicon.svg",
+        "BLOG_AVATAR": current_app.config.get("BLOG_AVATAR") or url_for("static", filename="favicon.svg"),
         "NOW": {
             "year": now.year,
             "month": now.month,
