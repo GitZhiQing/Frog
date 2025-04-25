@@ -48,6 +48,7 @@ MAIL_PASSWORD=<mail_password>       # 发件人密码
 ![light-archive](./images/archive-light.png)
 ![light-read](./images/read-light.png)
 ![light-comment](./images/comment-light.png)
+![comment-notify](./images/comment-notify.png)
 
 ## 待办
 
