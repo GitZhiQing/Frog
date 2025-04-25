@@ -1,5 +1,4 @@
 from flask import Flask
-from loguru import logger
 
 from app.registers import (
     register_blueprints,
@@ -18,7 +17,6 @@ def create_app() -> Flask:
     from app.config import app_config
 
     app.config.from_object(app_config)
-    logger.info(app.config["CELERY"])
 
     # 注册应用扩展
     register_extensions(app)

@@ -11,7 +11,7 @@ from app.forms import CommentForm
 from app.models import Comment, Post
 
 
-def handle_raw_action(post: Post, _):
+def handle_raw_action(post: Post):
     """处理原始文件请求"""
     try:
         if post.category.name == "root":
@@ -28,7 +28,7 @@ def handle_raw_action(post: Post, _):
         abort(500)
 
 
-def handle_read_action(post: Post, request_path):
+def handle_read_action(post: Post):
     """处理阅读页面请求"""
     form = CommentForm()
 
@@ -49,7 +49,7 @@ def handle_read_action(post: Post, request_path):
 
             from app.tasks import send_comment_notification
 
-            result = send_comment_notification.delay(comment.to_dict(), request_path)
+            result = send_comment_notification.delay(comment.to_dict())
             logger.info(f"创建邮件发送任务: {result.id}")
             flash("评论提交成功！", "success")
             return redirect(f"{request.url}#comment-{comment.cid}")

@@ -37,7 +37,7 @@ def about():
 
             from app.tasks import send_comment_notification
 
-            result = send_comment_notification.delay(comment.to_dict(), request_path=request.path)
+            result = send_comment_notification.delay(comment.to_dict())
             logger.info(f"创建邮件发送任务: {result.id}")
             flash("评论提交成功！", "success")
             return redirect(f"{request.url}#comment-{comment.cid}")

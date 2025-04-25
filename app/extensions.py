@@ -2,7 +2,6 @@ from celery import Celery, Task
 from flask import Flask
 from flask_mailman import Mail
 from flask_sqlalchemy import SQLAlchemy
-from loguru import logger
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -24,7 +23,6 @@ def celery_init_app(app: Flask) -> Celery:
                 return self.run(*args, **kwargs)
 
     celery_app = Celery(app.name, task_cls=FlaskTask, include=["app.tasks"])
-    logger.info(app.config["CELERY"])
     celery_app.config_from_object(app.config["CELERY"])
 
     celery_app.set_default()
